@@ -1,8 +1,0 @@
-Datos vestido bbdd:
-id
-Coleccion
-Nombre vestido
-Descripcion
-Categoria (novia, fiesta, comunion, complementos, boutique, outlet)
-Imagen principal URI
-Imagen secundaria URI
