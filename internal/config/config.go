@@ -56,7 +56,7 @@ func Load() *Config {
 	return &Config{
 		Port:               getEnv("PORT", "8080"),
 		Env:                getEnv("ENV", "development"),
-		DBDriver:           getEnv("DB_DRIVER", "memory"),
+		DBDriver:           getEnv("DB_DRIVER", "postgres"),
 		DatabaseURL:        getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/mariadiezma?sslmode=disable"),
 		JWTSecret:          getEnv("JWT_SECRET", "super-secret-jwt-key-change-me-in-production"),
 		JWTExpirationHours: jwtExpHours,

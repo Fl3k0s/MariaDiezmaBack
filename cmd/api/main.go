@@ -55,22 +55,18 @@ func main() {
 	defer cancel()
 
 	if cfg.DBDriver == "postgres" {
-		logger.Info("Connecting to PostgreSQL...")
+		logger.Info("Connecting to PostgreSQL database...", slog.String("database_url", cfg.DatabaseURL))
 		pool, err := postgres.NewPool(ctx, cfg.DatabaseURL)
 		if err != nil {
-			logger.Error("Failed to connect to PostgreSQL, falling back to memory repository", slog.Any("error", err))
-			userRepo = memory.NewUserRepository()
-			reqRepo = memory.NewRequestRepository()
-			colRepo = memory.NewCollectionRepository()
-			dressRepo = memory.NewDressRepository()
-		} else {
-			defer pool.Close()
-			logger.Info("Connected to PostgreSQL successfully")
-			userRepo = postgres.NewUserRepository(pool)
-			reqRepo = postgres.NewRequestRepository(pool)
-			colRepo = postgres.NewCollectionRepository(pool)
-			dressRepo = postgres.NewDressRepository(pool)
+			logger.Error("FATAL: Failed to connect to PostgreSQL. Make sure PostgreSQL is running (e.g. 'make docker-up' or local service) and DATABASE_URL is valid.", slog.Any("error", err))
+			os.Exit(1)
 		}
+		defer pool.Close()
+		logger.Info("✓ Connected to PostgreSQL successfully - Serving live data from database")
+		userRepo = postgres.NewUserRepository(pool)
+		reqRepo = postgres.NewRequestRepository(pool)
+		colRepo = postgres.NewCollectionRepository(pool)
+		dressRepo = postgres.NewDressRepository(pool)
 	} else {
 		logger.Info("Running with in-memory repository (ideal for testing and rapid local dev)")
 		userRepo = memory.NewUserRepository()

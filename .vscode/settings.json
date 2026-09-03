@@ -5,10 +5,12 @@
       "--check-go-version=false"
     ]
   },
+  "go.toolsGopath": "/Users/oscar/go",
+  "go.gopath": "/Users/oscar/go",
   "go.alternateTools": {
-    "dlv": "${userHome}/go/bin/dlv"
+    "dlv": "/Users/oscar/go/bin/dlv"
   },
   "go.toolsEnvVars": {
-    "PATH": "${userHome}/go/bin:/opt/homebrew/bin:${env:PATH}"
+    "PATH": "/Users/oscar/go/bin:/Users/oscar/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
   }
 }

@@ -1,4 +1,4 @@
-.PHONY: all build run test test-coverage clean docker-up docker-down
+.PHONY: all build run test test-coverage clean docker-up docker-down docker-reset seed seed-docker
 
 BINARY_NAME=api
 
@@ -32,6 +32,11 @@ docker-up:
 docker-down:
 	@echo "Stopping docker services..."
 	docker compose down
+
+docker-reset:
+	@echo "Resetting Docker containers and volumes (re-runs initdb and seed)..."
+	docker compose down -v
+	docker compose up --build -d
 
 seed:
 	@echo "Injecting seed data..."

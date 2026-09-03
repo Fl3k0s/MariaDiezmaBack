@@ -23,7 +23,7 @@ VALUES
     (
         '20000000-0000-0000-0000-000000000001',
         'Romance',
-        'assets/images/romance/MARIA_DIEZMA_001.jpg',
+        'assets/images/romance/MARIA_DIEZMA_076.jpg',
         'Diseños inspirados en la delicadeza botánica y tonalidades primaverales.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
@@ -31,7 +31,7 @@ VALUES
     (
         '20000000-0000-0000-0000-000000000002',
         'Nayade de Gala',
-        'assets/images/nayade/MARIA_DIEZMA_016.jpg',
+        'assets/images/nayade/MARIA_DIEZMA_091.jpg',
         'Colección cálida con texturas fluidas y tonos terracota y dorados.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
@@ -40,7 +40,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================================
 -- 3. DRESSES (2 colecciones con 5 vestidos cada una = 10 vestidos)
--- Cada vestido con sus 3 imágenes consecutivas (MARIA_DIEZMA_xxx.jpg)
+-- Cada con sus 3 imágenes consecutivas (MARIA_DIEZMA_xxx.jpg)
 -- ==========================================================
 INSERT INTO dresses (id, name, collection, image_path, image1_path, image2_path, image3_path, description, created_at, updated_at)
 VALUES
@@ -49,19 +49,19 @@ VALUES
     -- -------------------------------------------------------------
     (
         '30000000-0000-0000-0000-000000000001',
-        'Vestido Magnolia',
+        'Magnolia',
         'Romance',
         'assets/images/romance/MARIA_DIEZMA_001.jpg',
         'assets/images/romance/MARIA_DIEZMA_001.jpg',
         'assets/images/romance/MARIA_DIEZMA_002.jpg',
         'assets/images/romance/MARIA_DIEZMA_003.jpg',
-        'Vestido de corte sirena con bordados florales artesanales en tul y escote corazón.',
+        'de corte sirena con bordados florales artesanales en tul y escote corazón.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     ),
     (
         '30000000-0000-0000-0000-000000000002',
-        'Vestido Jazmín',
+        'Jazmín',
         'Romance',
         'assets/images/romance/MARIA_DIEZMA_004.jpg',
         'assets/images/romance/MARIA_DIEZMA_004.jpg',
@@ -73,7 +73,7 @@ VALUES
     ),
     (
         '30000000-0000-0000-0000-000000000003',
-        'Vestido Dalia',
+        'Dalia',
         'Romance',
         'assets/images/romance/MARIA_DIEZMA_007.jpg',
         'assets/images/romance/MARIA_DIEZMA_007.jpg',
@@ -85,19 +85,19 @@ VALUES
     ),
     (
         '30000000-0000-0000-0000-000000000004',
-        'Vestido Camelia',
+        'Camelia',
         'Romance',
         'assets/images/romance/MARIA_DIEZMA_010.jpg',
         'assets/images/romance/MARIA_DIEZMA_010.jpg',
         'assets/images/romance/MARIA_DIEZMA_011.jpg',
         'assets/images/romance/MARIA_DIEZMA_012.jpg',
-        'Vestido midi con falda de vuelo y cinturón joya bordado a mano.',
+        'midi con falda de vuelo y cinturón joya bordado a mano.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     ),
     (
         '30000000-0000-0000-0000-000000000005',
-        'Vestido Azahar',
+        'Azahar',
         'Romance',
         'assets/images/romance/MARIA_DIEZMA_013.jpg',
         'assets/images/romance/MARIA_DIEZMA_013.jpg',
@@ -113,19 +113,19 @@ VALUES
     -- -------------------------------------------------------------
     (
         '30000000-0000-0000-0000-000000000006',
-        'Vestido Siena',
+        'Siena',
         'Nayade de Gala',
         'assets/images/nayade/MARIA_DIEZMA_016.jpg',
         'assets/images/nayade/MARIA_DIEZMA_016.jpg',
         'assets/images/nayade/MARIA_DIEZMA_017.jpg',
         'assets/images/nayade/MARIA_DIEZMA_018.jpg',
-        'Vestido fluido de gasa de seda con espalda descubierta en tono cálido terracota.',
+        'fluido de gasa de seda con espalda descubierta en tono cálido terracota.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     ),
     (
         '30000000-0000-0000-0000-000000000007',
-        'Vestido Aurora',
+        'Aurora',
         'Nayade de Gala',
         'assets/images/nayade/MARIA_DIEZMA_019.jpg',
         'assets/images/nayade/MARIA_DIEZMA_019.jpg',
@@ -137,19 +137,19 @@ VALUES
     ),
     (
         '30000000-0000-0000-0000-000000000008',
-        'Vestido Coral',
+        'Coral',
         'Nayade de Gala',
         'assets/images/nayade/MARIA_DIEZMA_022.jpg',
         'assets/images/nayade/MARIA_DIEZMA_022.jpg',
         'assets/images/nayade/MARIA_DIEZMA_023.jpg',
         'assets/images/nayade/MARIA_DIEZMA_024.jpg',
-        'Vestido midi con falda plisada soleil y escote halter cruzado.',
+        'midi con falda plisada soleil y escote halter cruzado.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     ),
     (
         '30000000-0000-0000-0000-000000000009',
-        'Vestido Terracota',
+        'Terracota',
         'Nayade de Gala',
         'assets/images/nayade/MARIA_DIEZMA_025.jpg',
         'assets/images/nayade/MARIA_DIEZMA_025.jpg',
@@ -161,13 +161,13 @@ VALUES
     ),
     (
         '30000000-0000-0000-0000-000000000010',
-        'Vestido Sol Poniente',
+        'Sol Poniente',
         'Nayade de Gala',
         'assets/images/nayade/MARIA_DIEZMA_028.jpg',
         'assets/images/nayade/MARIA_DIEZMA_028.jpg',
         'assets/images/nayade/MARIA_DIEZMA_029.jpg',
         'assets/images/nayade/MARIA_DIEZMA_030.jpg',
-        'Vestido de fiesta en mikado tornasolado con manga capa desestructurada.',
+        'de fiesta en mikado tornasolado con manga capa desestructurada.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     )
@@ -205,10 +205,10 @@ VALUES
         'Carmen Navarro',
         'carmen.navarro@example.com',
         '+34 622 333 444',
-        'Solicitud de Cita: Prueba de Vestido - 2026-10-18',
+        'Solicitud de Cita: Prueba de - 2026-10-18',
         'Nueva cita solicitada para el día 2026-10-18 en el tramo horario 10:00 - 11:30.\nTipo de cita: Prueba de Vestido.\nContacto: Carmen Navarro (+34 622 333 444).',
         '{"fecha": "2026-10-18", "tipo_cita": "Prueba de Vestido", "tramo_horario": "10:00 - 11:30"}'::jsonb,
-        'Llamada telefónica realizada. Clienta interesada en el Vestido Magnolia. Cita confirmada.',
+        'Llamada telefónica realizada. Clienta interesada en el Magnolia. Cita confirmada.',
         '10000000-0000-0000-0000-000000000002',
         CURRENT_TIMESTAMP - INTERVAL '2 days',
         CURRENT_TIMESTAMP - INTERVAL '1 day'
@@ -237,8 +237,8 @@ VALUES
         'Elena Santamaría',
         'elena.santamaria@example.com',
         '+34 644 555 666',
-        'Presupuesto Vestido a Medida Madrina',
-        'Quisiera consultar presupuesto aproximado para confeccionar un vestido a medida para madrina de boda en seda salvaje.',
+        'Presupuesto a Medida Madrina',
+        'Quisiera consultar presupuesto aproximado para confeccionar un a medida para madrina de boda en seda salvaje.',
         '{"presupuesto_estimado": 1800, "evento_fecha": "2026-12-05"}'::jsonb,
         '',
         NULL,

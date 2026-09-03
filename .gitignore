@@ -9,6 +9,9 @@ bin/
 # Test binary, built with `go test -c`
 *.test
 
+# Vscode debug
+__debug_bin*
+
 # Output of the go coverage tool
 *.out
 
