@@ -1,0 +1,14 @@
+{
+  "go.delveConfig": {
+    "apiVersion": 2,
+    "dlvFlags": [
+      "--check-go-version=false"
+    ]
+  },
+  "go.alternateTools": {
+    "dlv": "${userHome}/go/bin/dlv"
+  },
+  "go.toolsEnvVars": {
+    "PATH": "${userHome}/go/bin:/opt/homebrew/bin:${env:PATH}"
+  }
+}
