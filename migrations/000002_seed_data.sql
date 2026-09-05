@@ -246,3 +246,31 @@ VALUES
         CURRENT_TIMESTAMP - INTERVAL '3 hours'
     )
 ON CONFLICT (id) DO NOTHING;
+
+-- ==========================================================
+-- 5. PRESS_ARTICLES (5 artículos de prensa sobre María Diezma)
+-- ==========================================================
+INSERT INTO press_articles (id, magazine_name, publication_date, title, description, article_url, created_at, updated_at)
+VALUES
+    (
+        '50000000-0000-0000-0000-000000000001',
+        'El Español',
+        'Marzo 2026',
+        'Arranca en Albacete "CLM es Moda" con los desfiles de Félix Ramiro',
+        'Este lunes ha tenido lugar la inauguración oficial de la III edición de CLM es Moda en la Fábrica de Harinas de Albacete de la exposición "Materia y Moda. De los oficios artesanos a la moda contemporánea", una muestra que pone en diálogo la tradición artesanal y la creación contemporánea, acercando al público el valor de los oficios y su influencia en el diseño actual.',
+        'https://www.elespanol.com/eldigitalcastillalamancha/region/albacete/20260525/arranca-albacete-clm-moda-desfiles-felix-ramiro-raquel-lopez-carmen-alba-maria-diezma/1003744259085_0.html',
+        CURRENT_TIMESTAMP - INTERVAL '120 days',
+        CURRENT_TIMESTAMP - INTERVAL '120 days'
+    ),
+    (
+        '50000000-0000-0000-0000-000000000002',
+        'Lucia Se Casa',
+        'Septiembre 2021',
+        'La sencillez y el corte clásico son signos de elegancia',
+        'La diseñadora María Diezma lleva la costura en sus genes. Heredera de las técnicas de su madre y de su abuela, manejaba las agujas desde muy temprana edad, y ya en su niñez disfrutaba bordando con bastidor, hilvanando o rematando sus diseños',
+        'https://luciasecasa.com/novia/vestidos-de-novia/protagonistas-maria-diezma-la-sencillez-y-el-corte-clasico-son-signos-de-elegancia/',
+        CURRENT_TIMESTAMP - INTERVAL '180 days',
+        CURRENT_TIMESTAMP - INTERVAL '180 days'
+    )
+ON CONFLICT (id) DO NOTHING;
+

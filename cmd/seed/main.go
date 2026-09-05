@@ -50,7 +50,7 @@ func main() {
 		log.Fatalf("Error leyendo archivo de datos de prueba %s: %v", seedPath, err)
 	}
 
-	fmt.Println("Inyectando datos de prueba (usuarios, colecciones, vestidos, citas)...")
+	fmt.Println("Inyectando datos de prueba (usuarios, colecciones, vestidos, citas, artículos de prensa)...")
 	if _, err := conn.Exec(ctx, string(seedSQL)); err != nil {
 		log.Fatalf("Error inyectando datos de prueba: %v", err)
 	}

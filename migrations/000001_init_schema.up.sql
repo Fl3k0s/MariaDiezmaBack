@@ -78,3 +78,20 @@ CREATE TABLE IF NOT EXISTS dresses (
 CREATE INDEX IF NOT EXISTS idx_dresses_collection ON dresses(LOWER(collection));
 CREATE INDEX IF NOT EXISTS idx_dresses_name_col ON dresses(LOWER(name), LOWER(collection));
 CREATE INDEX IF NOT EXISTS idx_dresses_created_at ON dresses(created_at ASC);
+
+-- ==========================================================
+-- 5. PRESS_ARTICLES: Press articles / media appearances for web frontend
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS press_articles (
+    id VARCHAR(36) PRIMARY KEY,
+    magazine_name VARCHAR(255) NOT NULL,
+    publication_date VARCHAR(50) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    article_url VARCHAR(1000) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_press_articles_magazine ON press_articles(LOWER(magazine_name));
+CREATE INDEX IF NOT EXISTS idx_press_articles_created_at ON press_articles(created_at ASC);

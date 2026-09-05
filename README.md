@@ -142,6 +142,7 @@ make test-coverage
 - `GET /api/v1/vestidos/detalle` (o `/api/v1/dresses/detail`) - Obtiene la ficha completa de un vestido (nombre, colección, ruta de imagen 1, ruta de imagen 2 y descripción) a partir de `?nombre=...&coleccion=...`.
 - `POST /api/v1/requests` - Envío de peticiones/formularios generales desde la web pública.
 - `POST /api/v1/citas` (o `/api/v1/appointments`) - Envío de citas solicitadas desde la web (guarda en backoffice y envía email con los datos de la cita).
+- `GET /api/v1/prensa` (o `/api/v1/press`, `/api/v1/articulos-prensa`) - Obtiene el listado de artículos de prensa (nombre de la revista, fecha de publicación, titular, pequeña descripción y enlace del artículo).
 
 ### Protegidos (requieren cabecera `Authorization: Bearer <TOKEN>`)
 - `GET /api/v1/auth/me` - Datos del usuario autenticado actual.
@@ -330,6 +331,30 @@ Respuesta (200 OK):
     "ruta_imagen_3": "assets/images/esencia-floral/MARIA_DIEZMA_003.jpg",
     "descripcion": "Vestido de corte sirena con bordados florales artesanales en tul y escote corazón."
   }
+}
+```
+
+### 9. Consulta de Artículos de Prensa (Público)
+```bash
+curl -X GET http://localhost:8080/api/v1/prensa
+```
+
+Respuesta (200 OK):
+```json
+{
+  "success": true,
+  "message": "Artículos de prensa obtenidos correctamente",
+  "data": [
+    {
+      "id": "press-001",
+      "nombre_revista": "Vogue España",
+      "fecha_publicacion": "2024-05-15",
+      "titular": "María Diezma: La nueva era de la alta costura nupcial y la artesanía contemporánea",
+      "descripcion": "Un recorrido íntimo por el atelier madrileño de María Diezma, donde cada puntada rinde homenaje a la tradición y al patronaje a medida.",
+      "enlace_articulo": "https://www.vogue.es/novias/articulos/maria-diezma-alta-costura-nupcial",
+      "enlace": "https://www.vogue.es/novias/articulos/maria-diezma-alta-costura-nupcial"
+    }
+  ]
 }
 ```
 

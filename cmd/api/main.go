@@ -49,6 +49,7 @@ func main() {
 		reqRepo   repository.RequestRepository
 		colRepo   repository.CollectionRepository
 		dressRepo repository.DressRepository
+		pressRepo repository.PressArticleRepository
 	)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -67,12 +68,14 @@ func main() {
 		reqRepo = postgres.NewRequestRepository(pool)
 		colRepo = postgres.NewCollectionRepository(pool)
 		dressRepo = postgres.NewDressRepository(pool)
+		pressRepo = postgres.NewPressArticleRepository(pool)
 	} else {
 		logger.Info("Running with in-memory repository (ideal for testing and rapid local dev)")
 		userRepo = memory.NewUserRepository()
 		reqRepo = memory.NewRequestRepository()
 		colRepo = memory.NewCollectionRepository()
 		dressRepo = memory.NewDressRepository()
+		pressRepo = memory.NewPressArticleRepository()
 	}
 
 	// Initialize services
@@ -82,6 +85,7 @@ func main() {
 	apptService := service.NewAppointmentService(reqRepo, mailService, cfg.NotificationEmail, logger)
 	colService := service.NewCollectionService(colRepo)
 	dressService := service.NewDressService(dressRepo)
+	pressService := service.NewPressArticleService(pressRepo)
 
 	// Ensure default administrator account exists
 	if err := authService.EnsureAdminUser(ctx, cfg.AdminEmail, cfg.AdminPassword); err != nil {
@@ -104,6 +108,13 @@ func main() {
 		logger.Info("Dresses initialized")
 	}
 
+	// Seed default press articles if empty
+	if err := pressService.EnsureDefaultPressArticles(ctx); err != nil {
+		logger.Error("Failed to seed default press articles", slog.Any("error", err))
+	} else {
+		logger.Info("Press articles initialized")
+	}
+
 	// Handlers
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService)
@@ -111,6 +122,7 @@ func main() {
 	apptHandler := handler.NewAppointmentHandler(apptService)
 	colHandler := handler.NewCollectionHandler(colService)
 	dressHandler := handler.NewDressHandler(dressService)
+	pressHandler := handler.NewPressHandler(pressService)
 
 	// Router setup
 	r := chi.NewRouter()
@@ -146,6 +158,11 @@ func main() {
 		api.Get("/vestidos", dressHandler.List) // Alias en español
 		api.Get("/dresses/detail", dressHandler.GetDetail)
 		api.Get("/vestidos/detalle", dressHandler.GetDetail) // Alias en español
+
+		// Public press articles for frontend web
+		api.Get("/press", pressHandler.List)
+		api.Get("/prensa", pressHandler.List) // Alias en español
+		api.Get("/articulos-prensa", pressHandler.List) // Alias en español
 
 		// Protected Backoffice Routes
 		api.Group(func(backoffice chi.Router) {

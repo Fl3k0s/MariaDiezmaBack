@@ -34,4 +34,10 @@ type DressRepository interface {
 	Create(ctx context.Context, dress *domain.Dress) error
 }
 
+type PressArticleRepository interface {
+	List(ctx context.Context) ([]domain.PressArticle, error)
+	GetByID(ctx context.Context, id string) (*domain.PressArticle, error)
+	Create(ctx context.Context, article *domain.PressArticle) error
+}
+
 
