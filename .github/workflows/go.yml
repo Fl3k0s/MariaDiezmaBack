@@ -1,28 +1,138 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
-name: Go
+name: CI
 
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+  workflow_dispatch:
+
+# Concurrency control: cancel redundant running workflows for pull requests
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
 
 jobs:
-
-  build:
+  lint:
+    name: Code Quality & Vet
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
 
-    - name: Build
-      run: go build -v ./...
+      - name: Verify module dependencies
+        run: |
+          go mod verify
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go.mod or go.sum is not clean after go mod tidy" && exit 1)
 
-    - name: Test
-      run: go test -v ./...
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Check code formatting (gofmt)
+        run: |
+          UNFORMATTED=$(gofmt -l .)
+          if [ -n "$UNFORMATTED" ]; then
+            echo "::warning::The following files are not formatted properly with gofmt:"
+            echo "$UNFORMATTED"
+          fi
+
+  test:
+    name: Test & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Run tests with race detector and coverage
+        run: |
+          go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: Output coverage summary to workflow summary
+        if: always() && hashFiles('coverage.out') != ''
+        run: |
+          echo "### 📊 Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          go tool cover -func=coverage.out | tail -n 1 >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('coverage.out') != ''
+        with:
+          name: coverage-report
+          path: coverage.out
+          retention-days: 14
+
+  security:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+
+  build:
+    name: Build & Artifacts
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Compile production binaries (Linux)
+        run: |
+          mkdir -p bin
+          CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o bin/api ./cmd/api
+          CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o bin/seed ./cmd/seed
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (dry-run test)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: mariadiezmaback:ci-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

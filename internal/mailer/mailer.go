@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"net/smtp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -152,7 +153,7 @@ Puedes gestionar esta cita directamente en el panel de Backoffice.
 		fmt.Sprintf("--%s--", boundary),
 	}, "\r\n"))
 
-	addr := fmt.Sprintf("%s:%d", m.host, m.port)
+	addr := net.JoinHostPort(m.host, strconv.Itoa(m.port))
 	var auth smtp.Auth
 	if m.username != "" {
 		auth = smtp.PlainAuth("", m.username, m.password, m.host)
