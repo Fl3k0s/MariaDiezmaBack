@@ -106,24 +106,17 @@ func (s *AppointmentService) Create(ctx context.Context, input domain.CreateAppo
 	}
 
 	appt := &domain.Appointment{
-		ID:               id,
-		Name:             input.Name,
-		NombreApellidos:  input.Name,
-		Email:            input.Email,
-		Phone:            input.Phone,
-		TelefonoContacto: input.Phone,
-		Date:             input.Date,
-		Fecha:            input.Date,
-		TimeSlot:         input.TimeSlot,
-		FranjaHoraria:    input.TimeSlot,
-		Type:             input.Type,
-		TipoCita:         input.Type,
-		EstimatedDate:    input.EstimatedDate,
-		FechaEstimada:    input.EstimatedDate,
-		Details:          input.Details,
-		Detalles:         input.Details,
-		Status:           string(domain.StatusPending),
-		CreatedAt:        now,
+		ID:            id,
+		Name:          input.Name,
+		Email:         input.Email,
+		Phone:         input.Phone,
+		Date:          input.Date,
+		TimeSlot:      input.TimeSlot,
+		Type:          input.Type,
+		EstimatedDate: input.EstimatedDate,
+		Details:       input.Details,
+		Status:        string(domain.StatusPending),
+		CreatedAt:     now,
 	}
 
 	// 2. Dispatch email notification to team/management

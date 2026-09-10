@@ -112,29 +112,33 @@ func TestAppointmentHandler_CreateWithWebFormFields(t *testing.T) {
 	}
 
 	dataMap := res.Data.(map[string]any)
-	if dataMap["nombre_apellidos"] != "Lucía Domínguez" {
-		t.Errorf("expected nombre_apellidos 'Lucía Domínguez', got %v", dataMap["nombre_apellidos"])
-	}
 	if dataMap["name"] != "Lucía Domínguez" {
 		t.Errorf("expected name 'Lucía Domínguez', got %v", dataMap["name"])
 	}
-	if dataMap["telefono_contacto"] != "+34 678 901 234" {
-		t.Errorf("expected telefono_contacto '+34 678 901 234', got %v", dataMap["telefono_contacto"])
+	if dataMap["phone"] != "+34 678 901 234" {
+		t.Errorf("expected phone '+34 678 901 234', got %v", dataMap["phone"])
 	}
-	if dataMap["franja_horaria"] != "Tarde (16:00 - 19:00)" {
-		t.Errorf("expected franja_horaria 'Tarde (16:00 - 19:00)', got %v", dataMap["franja_horaria"])
+	if dataMap["date"] != "2026-10-25" {
+		t.Errorf("expected date '2026-10-25', got %v", dataMap["date"])
 	}
-	if dataMap["tipo_cita"] != "Novia a medida" {
-		t.Errorf("expected tipo_cita 'Novia a medida', got %v", dataMap["tipo_cita"])
+	if dataMap["time_slot"] != "Tarde (16:00 - 19:00)" {
+		t.Errorf("expected time_slot 'Tarde (16:00 - 19:00)', got %v", dataMap["time_slot"])
 	}
-	if dataMap["fecha_estimada"] != "2027-05-15" {
-		t.Errorf("expected fecha_estimada '2027-05-15', got %v", dataMap["fecha_estimada"])
+	if dataMap["type"] != "Novia a medida" {
+		t.Errorf("expected type 'Novia a medida', got %v", dataMap["type"])
 	}
 	if dataMap["estimated_date"] != "2027-05-15" {
 		t.Errorf("expected estimated_date '2027-05-15', got %v", dataMap["estimated_date"])
 	}
-	if dataMap["detalles"] != "Interesada en telas de seda natural y encaje floral" {
-		t.Errorf("expected detalles 'Interesada en telas de seda natural y encaje floral', got %v", dataMap["detalles"])
+	if dataMap["details"] != "Interesada en telas de seda natural y encaje floral" {
+		t.Errorf("expected details 'Interesada en telas de seda natural y encaje floral', got %v", dataMap["details"])
+	}
+
+	// Verify no duplicated Spanish keys in JSON response
+	for _, duplicateKey := range []string{"nombre_apellidos", "telefono_contacto", "fecha", "franja_horaria", "tipo_cita", "fecha_estimada", "detalles"} {
+		if _, exists := dataMap[duplicateKey]; exists {
+			t.Errorf("expected key '%s' to not be present in response data", duplicateKey)
+		}
 	}
 }
 
@@ -169,18 +173,20 @@ func TestAppointmentHandler_CreateWithNullableFechaEstimada(t *testing.T) {
 	}
 
 	dataMap := res.Data.(map[string]any)
-	if dataMap["fecha_estimada"] != nil {
-		t.Errorf("expected fecha_estimada to be nil/null, got %v", dataMap["fecha_estimada"])
+	if dataMap["name"] != "Carmen Navarro" {
+		t.Errorf("expected name 'Carmen Navarro', got %v", dataMap["name"])
 	}
 	if dataMap["estimated_date"] != nil {
 		t.Errorf("expected estimated_date to be nil/null, got %v", dataMap["estimated_date"])
+	}
+	if dataMap["details"] != "Sin mangas" {
+		t.Errorf("expected details 'Sin mangas', got %v", dataMap["details"])
 	}
 }
 
 func TestAppointmentHandler_CreateWithFranaHorariaTypo(t *testing.T) {
 	r, _ := setupTestRouter()
 
-	// Specifically test the "frana_horaria" typo
 	payload := map[string]any{
 		"tipo_cita":         "Invitada",
 		"fecha":             "2026-12-05",
@@ -206,8 +212,8 @@ func TestAppointmentHandler_CreateWithFranaHorariaTypo(t *testing.T) {
 	}
 
 	dataMap := res.Data.(map[string]any)
-	if dataMap["franja_horaria"] != "11:00 - 12:00" {
-		t.Errorf("expected franja_horaria '11:00 - 12:00', got %v", dataMap["franja_horaria"])
+	if dataMap["time_slot"] != "11:00 - 12:00" {
+		t.Errorf("expected time_slot '11:00 - 12:00', got %v", dataMap["time_slot"])
 	}
 }
 
@@ -227,5 +233,51 @@ func TestAppointmentHandler_ValidationFailure(t *testing.T) {
 
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400 Bad Request, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestAppointmentHandler_CreateWithMailKey(t *testing.T) {
+	r, repo := setupTestRouter()
+
+	// Web form sending "mail" instead of "email"
+	payload := map[string]any{
+		"tipo_cita":         "Novia a medida",
+		"fecha":             "2026-10-30",
+		"franja_horaria":    "Tarde (16:00 - 19:00)",
+		"nombre_apellidos":  "Lucía Ferrero",
+		"telefono_contacto": "+34 611 222 333",
+		"mail":              "lucia.ferrero@example.com",
+		"detalles":          "Prueba inicial",
+	}
+
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/citas", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected 201 Created, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var res response.APIResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	dataMap := res.Data.(map[string]any)
+	if dataMap["email"] != "lucia.ferrero@example.com" {
+		t.Errorf("expected email 'lucia.ferrero@example.com', got %v", dataMap["email"])
+	}
+
+	// Verify database persistence in RequestItem.SenderEmail
+	apptID := dataMap["id"].(string)
+	savedItem, err := repo.GetByID(context.Background(), apptID)
+	if err != nil {
+		t.Fatalf("failed to get item from repo: %v", err)
+	}
+	if savedItem.SenderEmail != "lucia.ferrero@example.com" {
+		t.Errorf("expected SenderEmail 'lucia.ferrero@example.com' in database, got '%s'", savedItem.SenderEmail)
 	}
 }

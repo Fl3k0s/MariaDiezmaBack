@@ -60,9 +60,6 @@ func TestAppointmentService_Create(t *testing.T) {
 	if appt.Name != input.Name {
 		t.Errorf("expected name %s, got %s", input.Name, appt.Name)
 	}
-	if appt.NombreApellidos != input.Name {
-		t.Errorf("expected nombre_apellidos %s, got %s", input.Name, appt.NombreApellidos)
-	}
 	if appt.Email != input.Email {
 		t.Errorf("expected email %s, got %s", input.Email, appt.Email)
 	}

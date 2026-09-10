@@ -8,24 +8,17 @@ import (
 )
 
 type Appointment struct {
-	ID               string    `json:"id"`
-	Name             string    `json:"name"`
-	NombreApellidos  string    `json:"nombre_apellidos,omitempty"`
-	Email            string    `json:"email,omitempty"`
-	Phone            string    `json:"phone"`
-	TelefonoContacto string    `json:"telefono_contacto,omitempty"`
-	Date             string    `json:"date"`
-	Fecha            string    `json:"fecha,omitempty"`
-	TimeSlot         string    `json:"time_slot"`
-	FranjaHoraria    string    `json:"franja_horaria,omitempty"`
-	Type             string    `json:"type"`
-	TipoCita         string    `json:"tipo_cita,omitempty"`
-	EstimatedDate    *string   `json:"estimated_date"`
-	FechaEstimada    *string   `json:"fecha_estimada"`
-	Details          string    `json:"details,omitempty"`
-	Detalles         string    `json:"detalles,omitempty"`
-	Status           string    `json:"status"` // pending, confirmed, cancelled
-	CreatedAt        time.Time `json:"created_at"`
+	ID            string    `json:"id"`
+	Name          string    `json:"name"`
+	Email         string    `json:"email,omitempty"`
+	Phone         string    `json:"phone"`
+	Date          string    `json:"date"`
+	TimeSlot      string    `json:"time_slot"`
+	Type          string    `json:"type"`
+	EstimatedDate *string   `json:"estimated_date"`
+	Details       string    `json:"details,omitempty"`
+	Status        string    `json:"status"` // pending, confirmed, cancelled
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type CreateAppointmentInput struct {
@@ -58,17 +51,23 @@ func (c *CreateAppointmentInput) UnmarshalJSON(data []byte) error {
 		Detalles         string `json:"detalles"`
 		Comentarios      string `json:"comentarios"`
 		Mensaje          string `json:"mensaje"`
-		EmailES          string `json:"email"`
+		EmailES                string `json:"email"`
+		Mail                   string `json:"mail"`
+		Correo                 string `json:"correo"`
+		CorreoElectronico      string `json:"correo_electronico"`
+		EmailContacto          string `json:"email_contacto"`
 
 		// Spanish field names (camelCase)
-		TipoCitaCamel         string `json:"tipoCita"`
-		FranjaHorariaCamel    string `json:"franjaHoraria"`
-		FranaHorariaCamel     string `json:"franaHoraria"`
-		TramoHorarioCamel     string `json:"tramoHorario"`
-		NombreApellidosCamel  string `json:"nombreApellidos"`
-		NombreYApellidosCamel string `json:"nombreYApellidos"`
-		TelefonoContactoCamel string `json:"telefonoContacto"`
-		FechaEstimadaCamel    any    `json:"fechaEstimada"`
+		TipoCitaCamel          string `json:"tipoCita"`
+		FranjaHorariaCamel     string `json:"franjaHoraria"`
+		FranaHorariaCamel      string `json:"franaHoraria"`
+		TramoHorarioCamel      string `json:"tramoHorario"`
+		NombreApellidosCamel   string `json:"nombreApellidos"`
+		NombreYApellidosCamel  string `json:"nombreYApellidos"`
+		TelefonoContactoCamel  string `json:"telefonoContacto"`
+		FechaEstimadaCamel     any    `json:"fechaEstimada"`
+		CorreoElectronicoCamel string `json:"correoElectronico"`
+		EmailContactoCamel     string `json:"emailContacto"`
 
 		// English field names
 		Type               string `json:"type"`
@@ -81,6 +80,7 @@ func (c *CreateAppointmentInput) UnmarshalJSON(data []byte) error {
 		EstimatedDateCamel any    `json:"estimatedDate"`
 		Details            string `json:"details"`
 		EmailEN            string `json:"email_address"`
+		EmailAddressCamel  string `json:"emailAddress"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -182,10 +182,17 @@ func (c *CreateAppointmentInput) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	// Email (opcional)
+	// Email / Mail / Correo
 	for _, e := range []string{
 		raw.EmailES,
+		raw.Mail,
+		raw.Correo,
+		raw.CorreoElectronico,
+		raw.CorreoElectronicoCamel,
+		raw.EmailContacto,
+		raw.EmailContactoCamel,
 		raw.EmailEN,
+		raw.EmailAddressCamel,
 	} {
 		if trimmed := strings.TrimSpace(e); trimmed != "" {
 			c.Email = trimmed
