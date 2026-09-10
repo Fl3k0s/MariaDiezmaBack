@@ -43,7 +43,7 @@ type LogMailer struct {
 func (m *LogMailer) SendAppointmentNotification(ctx context.Context, toEmail string, appt *domain.Appointment) error {
 	fechaEstimada := ""
 	if appt.EstimatedDate != nil {
-		fechaEstimada = *appt.EstimatedDate
+		fechaEstimada = formatDateDDMMYYYY(*appt.EstimatedDate)
 	}
 	m.logger.Info("📧 [EMAIL NOTIFICATION DISPATCHED]",
 		slog.String("to", toEmail),
@@ -51,7 +51,7 @@ func (m *LogMailer) SendAppointmentNotification(ctx context.Context, toEmail str
 		slog.String("nombre_apellidos", appt.Name),
 		slog.String("email", appt.Email),
 		slog.String("telefono_contacto", appt.Phone),
-		slog.String("fecha", appt.Date),
+		slog.String("fecha", formatDateDDMMYYYY(appt.Date)),
 		slog.String("franja_horaria", appt.TimeSlot),
 		slog.String("tipo_cita", appt.Type),
 		slog.String("fecha_estimada", fechaEstimada),
@@ -79,9 +79,17 @@ func (m *SMTPMailer) SendAppointmentNotification(ctx context.Context, toEmail st
 		emailDisplay = "No proporcionado"
 	}
 
+	fechaDisplay := formatDateDDMMYYYY(appt.Date)
+	if fechaDisplay == "" {
+		fechaDisplay = appt.Date
+	}
+
 	fechaEstimadaDisplay := "No especificada"
 	if appt.EstimatedDate != nil && *appt.EstimatedDate != "" {
-		fechaEstimadaDisplay = *appt.EstimatedDate
+		formattedEst := formatDateDDMMYYYY(*appt.EstimatedDate)
+		if formattedEst != "" {
+			fechaEstimadaDisplay = formattedEst
+		}
 	}
 
 	detallesDisplay := "Sin detalles adicionales"
@@ -108,7 +116,7 @@ DATOS DE LA CITA SOLICITADA
 --------------------------------------------------
 
 Puedes gestionar esta cita directamente en el panel de Backoffice.
-`, appt.Name, appt.Phone, emailDisplay, appt.Type, appt.Date, appt.TimeSlot, fechaEstimadaDisplay, detallesDisplay, appt.ID)
+`, appt.Name, appt.Phone, emailDisplay, appt.Type, fechaDisplay, appt.TimeSlot, fechaEstimadaDisplay, detallesDisplay, appt.ID)
 
 	emailHtml := `<span class="value" style="color:#64748b; font-style:italic;">No proporcionado</span>`
 	if appt.Email != "" {
@@ -158,7 +166,7 @@ Puedes gestionar esta cita directamente en el panel de Backoffice.
 		</div>
 	</div>
 </body>
-</html>`, appt.Name, appt.Phone, emailHtml, appt.Type, appt.Date, appt.TimeSlot, fechaEstimadaDisplay, detallesDisplay, appt.ID)
+</html>`, appt.Name, appt.Phone, emailHtml, appt.Type, fechaDisplay, appt.TimeSlot, fechaEstimadaDisplay, detallesDisplay, appt.ID)
 
 	boundary := fmt.Sprintf("boundary-%d", time.Now().UnixNano())
 	msg := []byte(strings.Join([]string{
@@ -242,4 +250,30 @@ Puedes gestionar esta cita directamente en el panel de Backoffice.
 	}
 
 	return client.Quit()
+}
+
+// formatDateDDMMYYYY converts date strings (e.g. YYYY-MM-DD or RFC3339) to DD-MM-YYYY format.
+func formatDateDDMMYYYY(dateStr string) string {
+	dateStr = strings.TrimSpace(dateStr)
+	if dateStr == "" {
+		return ""
+	}
+
+	layouts := []string{
+		"2006-01-02",
+		time.RFC3339,
+		"2006-01-02T15:04:05.999999999Z07:00",
+		"2006-01-02 15:04:05",
+		"2006/01/02",
+		"02-01-2006",
+		"02/01/2006",
+	}
+
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, dateStr); err == nil {
+			return t.Format("02-01-2006")
+		}
+	}
+
+	return dateStr
 }

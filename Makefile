@@ -1,4 +1,4 @@
-.PHONY: all build run test test-coverage clean docker-up docker-down docker-reset seed seed-docker
+.PHONY: all build run test test-coverage clean docker-up docker-down docker-reset seed seed-docker test-smtp
 
 BINARY_NAME=api
 
@@ -45,4 +45,8 @@ seed:
 seed-docker:
 	@echo "Injecting seed data into PostgreSQL container..."
 	docker exec -i mariadiezma_db psql -U postgres -d mariadiezma < migrations/000002_seed_data.sql
+
+test-smtp:
+	@echo "Testing SMTP email dispatch..."
+	go run ./cmd/test_smtp
 
