@@ -41,15 +41,21 @@ type LogMailer struct {
 }
 
 func (m *LogMailer) SendAppointmentNotification(ctx context.Context, toEmail string, appt *domain.Appointment) error {
+	fechaEstimada := ""
+	if appt.EstimatedDate != nil {
+		fechaEstimada = *appt.EstimatedDate
+	}
 	m.logger.Info("📧 [EMAIL NOTIFICATION DISPATCHED]",
 		slog.String("to", toEmail),
 		slog.String("subject", fmt.Sprintf("[Maria Diezma] Nueva Cita Solicitada: %s", appt.Name)),
-		slog.String("nombre", appt.Name),
+		slog.String("nombre_apellidos", appt.Name),
 		slog.String("email", appt.Email),
-		slog.String("telefono", appt.Phone),
+		slog.String("telefono_contacto", appt.Phone),
 		slog.String("fecha", appt.Date),
-		slog.String("tramo_horario", appt.TimeSlot),
+		slog.String("franja_horaria", appt.TimeSlot),
 		slog.String("tipo_cita", appt.Type),
+		slog.String("fecha_estimada", fechaEstimada),
+		slog.String("detalles", appt.Details),
 		slog.String("cita_id", appt.ID),
 	)
 	return nil
@@ -68,6 +74,21 @@ type SMTPMailer struct {
 func (m *SMTPMailer) SendAppointmentNotification(ctx context.Context, toEmail string, appt *domain.Appointment) error {
 	subject := fmt.Sprintf("[Maria Diezma] Nueva Cita Solicitada: %s", appt.Name)
 
+	emailDisplay := appt.Email
+	if emailDisplay == "" {
+		emailDisplay = "No proporcionado"
+	}
+
+	fechaEstimadaDisplay := "No especificada"
+	if appt.EstimatedDate != nil && *appt.EstimatedDate != "" {
+		fechaEstimadaDisplay = *appt.EstimatedDate
+	}
+
+	detallesDisplay := "Sin detalles adicionales"
+	if appt.Details != "" {
+		detallesDisplay = appt.Details
+	}
+
 	plainBody := fmt.Sprintf(`Hola,
 
 Se ha recibido una nueva solicitud de cita a través de la web:
@@ -75,17 +96,24 @@ Se ha recibido una nueva solicitud de cita a través de la web:
 --------------------------------------------------
 DATOS DE LA CITA SOLICITADA
 --------------------------------------------------
-- Nombre:         %s
-- Email:          %s
-- Teléfono:       %s
-- Fecha:          %s
-- Tramo horario:  %s
-- Tipo de cita:   %s
-- ID de registro: %s
+- Nombre y apellidos:  %s
+- Teléfono contacto:   %s
+- Email:               %s
+- Tipo de cita:        %s
+- Fecha:               %s
+- Franja horaria:      %s
+- Fecha estimada:      %s
+- Detalles:            %s
+- ID de registro:      %s
 --------------------------------------------------
 
 Puedes gestionar esta cita directamente en el panel de Backoffice.
-`, appt.Name, appt.Email, appt.Phone, appt.Date, appt.TimeSlot, appt.Type, appt.ID)
+`, appt.Name, appt.Phone, emailDisplay, appt.Type, appt.Date, appt.TimeSlot, fechaEstimadaDisplay, detallesDisplay, appt.ID)
+
+	emailHtml := `<span class="value" style="color:#64748b; font-style:italic;">No proporcionado</span>`
+	if appt.Email != "" {
+		emailHtml = fmt.Sprintf(`<span class="value"><a href="mailto:%s">%s</a></span>`, appt.Email, appt.Email)
+	}
 
 	htmlBody := fmt.Sprintf(`<!DOCTYPE html>
 <html>
@@ -113,12 +141,14 @@ Puedes gestionar esta cita directamente en el panel de Backoffice.
 		<div class="content">
 			<p>Has recibido una nueva solicitud de cita desde el formulario de la web:</p>
 			<div class="card">
-				<div class="row"><span class="label">Nombre:</span><span class="value">%s</span></div>
-				<div class="row"><span class="label">Email:</span><span class="value"><a href="mailto:%s">%s</a></span></div>
-				<div class="row"><span class="label">Teléfono:</span><span class="value">%s</span></div>
-				<div class="row"><span class="label">Fecha solicitada:</span><span class="value"><strong>%s</strong></span></div>
-				<div class="row"><span class="label">Tramo horario:</span><span class="value"><strong>%s</strong></span></div>
+				<div class="row"><span class="label">Nombre y apellidos:</span><span class="value"><strong>%s</strong></span></div>
+				<div class="row"><span class="label">Teléfono contacto:</span><span class="value">%s</span></div>
+				<div class="row"><span class="label">Email:</span>%s</div>
 				<div class="row"><span class="label">Tipo de cita:</span><span class="value">%s</span></div>
+				<div class="row"><span class="label">Fecha solicitada:</span><span class="value"><strong>%s</strong></span></div>
+				<div class="row"><span class="label">Franja horaria:</span><span class="value"><strong>%s</strong></span></div>
+				<div class="row"><span class="label">Fecha estimada:</span><span class="value">%s</span></div>
+				<div class="row"><span class="label">Detalles:</span><span class="value">%s</span></div>
 				<div class="row"><span class="label">ID de gestión:</span><span class="value"><code>%s</code></span></div>
 			</div>
 			<p style="font-size: 14px; color: #64748b;">Puedes acceder al Backoffice para revisar, gestionar o responder a esta cita.</p>
@@ -128,7 +158,7 @@ Puedes gestionar esta cita directamente en el panel de Backoffice.
 		</div>
 	</div>
 </body>
-</html>`, appt.Name, appt.Email, appt.Email, appt.Phone, appt.Date, appt.TimeSlot, appt.Type, appt.ID)
+</html>`, appt.Name, appt.Phone, emailHtml, appt.Type, appt.Date, appt.TimeSlot, fechaEstimadaDisplay, detallesDisplay, appt.ID)
 
 	boundary := fmt.Sprintf("boundary-%d", time.Now().UnixNano())
 	msg := []byte(strings.Join([]string{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,13 +38,15 @@ func NewAppointmentService(
 
 func (s *AppointmentService) Create(ctx context.Context, input domain.CreateAppointmentInput) (*domain.Appointment, error) {
 	v := validator.New()
-	v.Required(input.Name, "nombre")
-	v.Required(input.Email, "email")
-	v.Email(input.Email, "email")
-	v.Required(input.Phone, "telefono")
+	v.Required(input.Name, "nombre_apellidos")
+	v.Required(input.Phone, "telefono_contacto")
 	v.Required(input.Date, "fecha")
-	v.Required(input.TimeSlot, "tramo_horario")
+	v.Required(input.TimeSlot, "franja_horaria")
 	v.Required(input.Type, "tipo_cita")
+
+	if input.Email != "" {
+		v.Email(input.Email, "email")
+	}
 
 	if !v.Valid() {
 		return nil, fmt.Errorf("%w: %v", domain.ErrInvalidInput, v.Errors)
@@ -53,6 +56,36 @@ func (s *AppointmentService) Create(ctx context.Context, input domain.CreateAppo
 	now := time.Now().UTC()
 
 	// 1. Persist as backoffice RequestItem so it can be managed from the dashboard
+	metadata := map[string]any{
+		"tipo_cita":         input.Type,
+		"fecha":             input.Date,
+		"franja_horaria":    input.TimeSlot,
+		"tramo_horario":     input.TimeSlot,
+		"nombre_apellidos":  input.Name,
+		"telefono_contacto": input.Phone,
+	}
+	if input.EstimatedDate != nil && *input.EstimatedDate != "" {
+		metadata["fecha_estimada"] = *input.EstimatedDate
+	}
+	if input.Details != "" {
+		metadata["detalles"] = input.Details
+	}
+
+	msgLines := []string{
+		fmt.Sprintf("Nueva cita solicitada para el día %s en el tramo horario %s.", input.Date, input.TimeSlot),
+		fmt.Sprintf("Tipo de cita: %s.", input.Type),
+		fmt.Sprintf("Contacto: %s (%s).", input.Name, input.Phone),
+	}
+	if input.Email != "" {
+		msgLines = append(msgLines, fmt.Sprintf("Email: %s.", input.Email))
+	}
+	if input.EstimatedDate != nil && *input.EstimatedDate != "" {
+		msgLines = append(msgLines, fmt.Sprintf("Fecha estimada: %s.", *input.EstimatedDate))
+	}
+	if input.Details != "" {
+		msgLines = append(msgLines, fmt.Sprintf("Detalles: %s", input.Details))
+	}
+
 	reqItem := &domain.RequestItem{
 		ID:          id,
 		Type:        "appointment",
@@ -62,17 +95,10 @@ func (s *AppointmentService) Create(ctx context.Context, input domain.CreateAppo
 		SenderEmail: input.Email,
 		SenderPhone: input.Phone,
 		Subject:     fmt.Sprintf("Solicitud de Cita: %s - %s", input.Type, input.Date),
-		Message: fmt.Sprintf(
-			"Nueva cita solicitada para el día %s en el tramo horario %s.\nTipo de cita: %s.\nContacto: %s (%s).",
-			input.Date, input.TimeSlot, input.Type, input.Name, input.Phone,
-		),
-		Metadata: map[string]any{
-			"fecha":         input.Date,
-			"tramo_horario": input.TimeSlot,
-			"tipo_cita":     input.Type,
-		},
-		CreatedAt: now,
-		UpdatedAt: now,
+		Message:     strings.Join(msgLines, "\n"),
+		Metadata:    metadata,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	if err := s.reqRepo.Create(ctx, reqItem); err != nil {
@@ -80,15 +106,24 @@ func (s *AppointmentService) Create(ctx context.Context, input domain.CreateAppo
 	}
 
 	appt := &domain.Appointment{
-		ID:        id,
-		Name:      input.Name,
-		Email:     input.Email,
-		Phone:     input.Phone,
-		Date:      input.Date,
-		TimeSlot:  input.TimeSlot,
-		Type:      input.Type,
-		Status:    string(domain.StatusPending),
-		CreatedAt: now,
+		ID:               id,
+		Name:             input.Name,
+		NombreApellidos:  input.Name,
+		Email:            input.Email,
+		Phone:            input.Phone,
+		TelefonoContacto: input.Phone,
+		Date:             input.Date,
+		Fecha:            input.Date,
+		TimeSlot:         input.TimeSlot,
+		FranjaHoraria:    input.TimeSlot,
+		Type:             input.Type,
+		TipoCita:         input.Type,
+		EstimatedDate:    input.EstimatedDate,
+		FechaEstimada:    input.EstimatedDate,
+		Details:          input.Details,
+		Detalles:         input.Details,
+		Status:           string(domain.StatusPending),
+		CreatedAt:        now,
 	}
 
 	// 2. Dispatch email notification to team/management

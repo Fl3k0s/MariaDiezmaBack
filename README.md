@@ -221,16 +221,48 @@ curl -X PATCH http://localhost:8080/api/v1/requests/<REQUEST_ID>/status \
 ```
 
 ### 5. Envío de Solicitud de Cita desde la Web (Notificación por Email)
+
+Disponible en `POST /api/v1/citas` (o su alias `POST /api/v1/appointments`).
+
+#### Campos admitidos en el cuerpo de la petición (JSON):
+- `tipo_cita` (`string`, obligatorio): Tipo de cita elegida (ej. `"Novia a medida"`, `"Invitada"`, `"Primera Consulta"`).
+- `fecha` (`string`, obligatorio): Fecha seleccionada para la cita (`YYYY-MM-DD`).
+- `franja_horaria` (`string`, obligatorio): Franja horaria elegida (ej. `"Tarde (16:00 - 19:00)"` o `"16:00 - 17:00"`).
+- `nombre_apellidos` (`string`, obligatorio): Nombre y apellidos del contacto.
+- `telefono_contacto` (`string`, obligatorio): Teléfono de contacto.
+- `fecha_estimada` (`date` / `string` o `null`, opcional): Fecha estimada del evento o boda (puede ser `null` o `"YYYY-MM-DD"`).
+- `detalles` (`string`, opcional): Comentarios o detalles específicos de la cita.
+- `email` (`string`, opcional): Correo electrónico de contacto (si se envía, se valida el formato).
+
+> *Nota: Por retrocompatibilidad, la API también admite los nombres de campos en inglés (`name`, `phone`, `date`, `time_slot`, `type`, `estimated_date`, `details`) y las variantes `tramo_horario`, `nombre`, `telefono`.*
+
+#### Ejemplo de Petición:
 ```bash
 curl -X POST http://localhost:8080/api/v1/citas \
   -H "Content-Type: application/json" \
   -d '{
-    "nombre": "Ana Gomez",
-    "email": "ana.gomez@example.com",
-    "telefono": "+34 600 123 456",
-    "fecha": "2026-10-15",
-    "tramo_horario": "16:00 - 17:00",
-    "tipo_cita": "Consulta Presencial"
+    "tipo_cita": "Novia a medida",
+    "fecha": "2026-10-25",
+    "franja_horaria": "Tarde (16:00 - 19:00)",
+    "nombre_apellidos": "Lucía Domínguez",
+    "telefono_contacto": "+34 678 901 234",
+    "fecha_estimada": "2027-05-15",
+    "detalles": "Interesada en telas de seda natural y corte sirena"
+  }'
+```
+
+*(Ejemplo con fecha estimada nula y sin email:)*
+```bash
+curl -X POST http://localhost:8080/api/v1/citas \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tipo_cita": "Madrina",
+    "fecha": "2026-11-10",
+    "franja_horaria": "Mañana (10:00 - 13:00)",
+    "nombre_apellidos": "Carmen Navarro",
+    "telefono_contacto": "+34 611 223 344",
+    "fecha_estimada": null,
+    "detalles": "Sin mangas"
   }'
 ```
 
@@ -241,18 +273,26 @@ Respuesta (201 Created):
   "message": "Cita solicitada correctamente",
   "data": {
     "id": "e67bfa37-88df-46fb-a0b2-bb3438adabec",
-    "name": "Ana Gomez",
-    "email": "ana.gomez@example.com",
-    "phone": "+34 600 123 456",
-    "date": "2026-10-15",
-    "time_slot": "16:00 - 17:00",
-    "type": "Consulta Presencial",
+    "tipo_cita": "Novia a medida",
+    "type": "Novia a medida",
+    "fecha": "2026-10-25",
+    "date": "2026-10-25",
+    "franja_horaria": "Tarde (16:00 - 19:00)",
+    "time_slot": "Tarde (16:00 - 19:00)",
+    "nombre_apellidos": "Lucía Domínguez",
+    "name": "Lucía Domínguez",
+    "telefono_contacto": "+34 678 901 234",
+    "phone": "+34 678 901 234",
+    "fecha_estimada": "2027-05-15",
+    "estimated_date": "2027-05-15",
+    "detalles": "Interesada en telas de seda natural y corte sirena",
+    "details": "Interesada en telas de seda natural y corte sirena",
     "status": "pending",
-    "created_at": "2026-09-02T21:30:00Z"
+    "created_at": "2026-09-10T14:30:00Z"
   }
 }
 ```
-*Al recibir esta petición, los datos se guardan en el repositorio del backoffice y se despacha un correo electrónico (HTML y texto plano) a la dirección configurada en `NOTIFICATION_EMAIL`.*
+*Al recibir esta petición, los datos se guardan en el repositorio del backoffice (con fecha estimada y detalles en metadata) y se despacha un correo electrónico (HTML y texto plano con todos los datos) a la dirección configurada en `NOTIFICATION_EMAIL`.*
 
 ### 6. Consulta de Colecciones para la Web Frontend (Público)
 ```bash

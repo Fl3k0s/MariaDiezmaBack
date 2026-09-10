@@ -10,6 +10,15 @@ import (
 	"mariadiezmaback/pkg/response"
 )
 
+// AppointmentHandler handles web requests for booking appointments.
+// Supports web fields:
+// - Tipo de cita (string)
+// - Fecha (string)
+// - Franja horaria (string)
+// - Nombre y apellidos (string)
+// - Teléfono de contacto (string)
+// - Fecha estimada (date, nullable)
+// - Detalles (string)
 type AppointmentHandler struct {
 	service *service.AppointmentService
 }
@@ -18,6 +27,8 @@ func NewAppointmentHandler(service *service.AppointmentService) *AppointmentHand
 	return &AppointmentHandler{service: service}
 }
 
+// Create handles POST /api/v1/citas or /api/v1/appointments.
+// Accepts both Spanish and English JSON payloads from the web form.
 func (h *AppointmentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var input domain.CreateAppointmentInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
