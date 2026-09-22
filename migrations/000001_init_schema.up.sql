@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS collections (
 );
 
 CREATE INDEX IF NOT EXISTS idx_collections_name ON collections(LOWER(name));
-CREATE INDEX IF NOT EXISTS idx_collections_created_at ON collections(created_at ASC);
+CREATE INDEX IF NOT EXISTS idx_collections_created_at ON collections(created_at DESC);
 
 -- ==========================================================
 -- 4. DRESSES: Dresses catalogue and details for public web frontend
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS dresses (
 
 CREATE INDEX IF NOT EXISTS idx_dresses_collection ON dresses(LOWER(collection));
 CREATE INDEX IF NOT EXISTS idx_dresses_name_col ON dresses(LOWER(name), LOWER(collection));
-CREATE INDEX IF NOT EXISTS idx_dresses_created_at ON dresses(created_at ASC);
+CREATE INDEX IF NOT EXISTS idx_dresses_created_at ON dresses(created_at DESC);
 
 -- ==========================================================
 -- 5. PRESS_ARTICLES: Press articles / media appearances for web frontend

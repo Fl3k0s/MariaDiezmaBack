@@ -125,7 +125,7 @@ func (r *DressRepo) List(ctx context.Context, collectionFilter string) ([]domain
 		args = append(args, strings.TrimSpace(collectionFilter))
 	}
 
-	query += ` ORDER BY created_at ASC`
+	query += ` ORDER BY created_at DESC`
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {

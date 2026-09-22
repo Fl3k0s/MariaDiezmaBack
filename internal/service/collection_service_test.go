@@ -57,8 +57,8 @@ func TestCollectionService_ListAndEnsureDefaults(t *testing.T) {
 		Name:        "Colección Exclusiva",
 		ImagePath:   "assets/images/exclusiva/MARIA_DIEZMA_031.jpg",
 		Description: "Edición limitada de piezas artesanales.",
-		CreatedAt:   time.Now().UTC(),
-		UpdatedAt:   time.Now().UTC(),
+		CreatedAt:   time.Now().UTC().Add(1 * time.Hour),
+		UpdatedAt:   time.Now().UTC().Add(1 * time.Hour),
 	}
 	if err := repo.Create(ctx, custom); err != nil {
 		t.Fatalf("failed to create custom collection: %v", err)
@@ -70,5 +70,8 @@ func TestCollectionService_ListAndEnsureDefaults(t *testing.T) {
 	}
 	if len(listAfterCustom) != 3 {
 		t.Fatalf("expected 3 collections, got %d", len(listAfterCustom))
+	}
+	if listAfterCustom[0].Name != "Colección Exclusiva" {
+		t.Errorf("expected newest collection 'Colección Exclusiva' to be first, got '%s'", listAfterCustom[0].Name)
 	}
 }

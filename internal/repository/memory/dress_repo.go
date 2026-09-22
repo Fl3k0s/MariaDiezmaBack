@@ -54,8 +54,9 @@ func (r *DressRepo) List(ctx context.Context, collectionFilter string) ([]domain
 		list = append(list, *d)
 	}
 
+	// Order by CreatedAt DESC (newest first)
 	sort.Slice(list, func(i, j int) bool {
-		return list[i].CreatedAt.Before(list[j].CreatedAt)
+		return list[i].CreatedAt.After(list[j].CreatedAt)
 	})
 
 	return list, nil

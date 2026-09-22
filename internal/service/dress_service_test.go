@@ -69,8 +69,8 @@ func TestDressService_ListAndEnsureDefaults(t *testing.T) {
 		Image1Path: "assets/images/novias/MARIA_DIEZMA_031.jpg",
 		Image2Path: "assets/images/novias/MARIA_DIEZMA_032.jpg",
 		Image3Path: "assets/images/novias/MARIA_DIEZMA_033.jpg",
-		CreatedAt:  time.Now().UTC(),
-		UpdatedAt:  time.Now().UTC(),
+		CreatedAt:  time.Now().UTC().Add(1 * time.Hour),
+		UpdatedAt:  time.Now().UTC().Add(1 * time.Hour),
 	}
 	if err := repo.Create(ctx, custom); err != nil {
 		t.Fatalf("failed to create custom dress: %v", err)
@@ -82,6 +82,9 @@ func TestDressService_ListAndEnsureDefaults(t *testing.T) {
 	}
 	if len(listAfterCustom) != 11 {
 		t.Fatalf("expected 11 dresses, got %d", len(listAfterCustom))
+	}
+	if listAfterCustom[0].Name != "Vestido Nupcial Sirena" {
+		t.Errorf("expected newest dress 'Vestido Nupcial Sirena' to be first, got '%s'", listAfterCustom[0].Name)
 	}
 }
 

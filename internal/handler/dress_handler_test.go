@@ -56,14 +56,19 @@ func TestDressHandler_List(t *testing.T) {
 	}
 
 	first := items[0]
-	if first.Name != "Vestido Magnolia" {
-		t.Errorf("expected name 'Vestido Magnolia', got '%s'", first.Name)
+	if first.Name != "Vestido Sol Poniente" {
+		t.Errorf("expected newest dress 'Vestido Sol Poniente', got '%s'", first.Name)
 	}
-	if first.Collection != "Esencia Floral" {
-		t.Errorf("expected collection 'Esencia Floral', got '%s'", first.Collection)
+	if first.Collection != "Atardecer Mediterráneo" {
+		t.Errorf("expected collection 'Atardecer Mediterráneo', got '%s'", first.Collection)
 	}
-	if first.ImagePath != "assets/images/esencia-floral/MARIA_DIEZMA_001.jpg" {
-		t.Errorf("expected image path 'assets/images/esencia-floral/MARIA_DIEZMA_001.jpg', got '%s'", first.ImagePath)
+	if first.ImagePath != "assets/images/atardecer-mediterraneo/MARIA_DIEZMA_028.jpg" {
+		t.Errorf("expected image path 'assets/images/atardecer-mediterraneo/MARIA_DIEZMA_028.jpg', got '%s'", first.ImagePath)
+	}
+
+	last := items[len(items)-1]
+	if last.Name != "Vestido Magnolia" {
+		t.Errorf("expected oldest dress 'Vestido Magnolia' to be last, got '%s'", last.Name)
 	}
 
 	// 2. Test GET /api/v1/vestidos?coleccion=Esencia+Floral
@@ -83,6 +88,12 @@ func TestDressHandler_List(t *testing.T) {
 
 	if len(filteredItems) != 5 {
 		t.Fatalf("expected 5 filtered dresses, got %d", len(filteredItems))
+	}
+	if filteredItems[0].Name != "Vestido Azahar" {
+		t.Errorf("expected newest in collection 'Vestido Azahar', got '%s'", filteredItems[0].Name)
+	}
+	if filteredItems[len(filteredItems)-1].Name != "Vestido Magnolia" {
+		t.Errorf("expected oldest in collection 'Vestido Magnolia', got '%s'", filteredItems[len(filteredItems)-1].Name)
 	}
 	for _, item := range filteredItems {
 		if item.Collection != "Esencia Floral" {

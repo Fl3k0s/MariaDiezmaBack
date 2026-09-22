@@ -66,7 +66,7 @@ func (r *CollectionRepo) List(ctx context.Context) ([]domain.Collection, error) 
 	query := `
 		SELECT id, name, image_path, description, created_at, updated_at
 		FROM collections
-		ORDER BY created_at ASC
+		ORDER BY created_at DESC
 	`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {

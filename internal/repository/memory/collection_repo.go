@@ -48,9 +48,9 @@ func (r *CollectionRepo) List(ctx context.Context) ([]domain.Collection, error) 
 		list = append(list, *col)
 	}
 
-	// Order by CreatedAt ASC or Name ASC
+	// Order by CreatedAt DESC (newest first)
 	sort.Slice(list, func(i, j int) bool {
-		return list[i].CreatedAt.Before(list[j].CreatedAt)
+		return list[i].CreatedAt.After(list[j].CreatedAt)
 	})
 
 	return list, nil

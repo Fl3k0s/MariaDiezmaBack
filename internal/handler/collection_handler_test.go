@@ -56,14 +56,19 @@ func TestCollectionHandler_List(t *testing.T) {
 	}
 
 	first := items[0]
-	if first.Name != "Esencia Floral" {
-		t.Errorf("expected name 'Esencia Floral', got '%s'", first.Name)
+	if first.Name != "Atardecer Mediterráneo" {
+		t.Errorf("expected newest collection 'Atardecer Mediterráneo', got '%s'", first.Name)
 	}
-	if first.ImagePath != "assets/images/esencia-floral/MARIA_DIEZMA_001.jpg" {
-		t.Errorf("expected image path 'assets/images/esencia-floral/MARIA_DIEZMA_001.jpg', got '%s'", first.ImagePath)
+	if first.ImagePath != "assets/images/atardecer-mediterraneo/MARIA_DIEZMA_016.jpg" {
+		t.Errorf("expected image path 'assets/images/atardecer-mediterraneo/MARIA_DIEZMA_016.jpg', got '%s'", first.ImagePath)
 	}
 	if first.Description == "" {
 		t.Errorf("expected non-empty description")
+	}
+
+	second := items[1]
+	if second.Name != "Esencia Floral" {
+		t.Errorf("expected second collection 'Esencia Floral', got '%s'", second.Name)
 	}
 
 	// 2. Test GET /api/v1/colecciones (Spanish alias)
