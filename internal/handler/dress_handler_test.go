@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -170,4 +171,57 @@ func TestDressHandler_GetDetail(t *testing.T) {
 		t.Fatalf("expected status 404 for non-existent dress, got %d", recNF.Code)
 	}
 }
+
+func TestDressHandler_Create(t *testing.T) {
+	repo := memory.NewDressRepository()
+	dressSvc := service.NewDressService(repo)
+	dressHandler := handler.NewDressHandler(dressSvc)
+
+	r := chi.NewRouter()
+	r.Post("/api/v1/dresses", dressHandler.Create)
+	r.Post("/api/v1/vestidos", dressHandler.Create)
+
+	// 1. Success case with Spanish keys
+	payload := map[string]string{
+		"nombre":        "Vestido Iris",
+		"coleccion":     "Esencia Floral",
+		"ruta_imagen":   "assets/images/esencia-floral/MARIA_DIEZMA_100.jpg",
+		"ruta_imagen_1": "assets/images/esencia-floral/MARIA_DIEZMA_100.jpg",
+		"ruta_imagen_2": "assets/images/esencia-floral/MARIA_DIEZMA_101.jpg",
+		"ruta_imagen_3": "assets/images/esencia-floral/MARIA_DIEZMA_102.jpg",
+		"descripcion":   "Vestido artesanal de alta costura.",
+	}
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/dresses", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected status 201, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp response.APIResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	if !resp.Success {
+		t.Errorf("expected success true")
+	}
+
+	// 2. Validation error when collection is empty
+	badPayload := map[string]string{
+		"nombre": "Vestido Sin Colección",
+	}
+	badBody, _ := json.Marshal(badPayload)
+	reqBad := httptest.NewRequest(http.MethodPost, "/api/v1/vestidos", bytes.NewReader(badBody))
+	reqBad.Header.Set("Content-Type", "application/json")
+	recBad := httptest.NewRecorder()
+	r.ServeHTTP(recBad, reqBad)
+
+	if recBad.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400 for missing collection, got %d", recBad.Code)
+	}
+}
+
 

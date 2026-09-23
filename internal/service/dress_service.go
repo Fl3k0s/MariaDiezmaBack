@@ -51,6 +51,50 @@ func (s *DressService) GetByNameAndCollection(ctx context.Context, name, collect
 	return &detail, nil
 }
 
+func (s *DressService) Create(ctx context.Context, input domain.CreateDressInput) (*domain.DressDetailResponse, error) {
+	cleanName := strings.TrimSpace(input.Name)
+	cleanCol := strings.TrimSpace(input.Collection)
+	if cleanName == "" || cleanCol == "" {
+		return nil, fmt.Errorf("%w: el nombre y la colección del vestido son obligatorios", domain.ErrInvalidInput)
+	}
+
+	img := strings.TrimSpace(input.ImagePath)
+	img1 := strings.TrimSpace(input.Image1Path)
+	if img == "" {
+		img = img1
+	}
+	if img1 == "" {
+		img1 = img
+	}
+
+	img2 := strings.TrimSpace(input.Image2Path)
+	img3 := strings.TrimSpace(input.Image3Path)
+	if img3 == "" {
+		img3 = img2
+	}
+
+	now := time.Now().UTC()
+	dress := &domain.Dress{
+		ID:          uuid.NewString(),
+		Name:        cleanName,
+		Collection:  cleanCol,
+		ImagePath:   img,
+		Image1Path:  img1,
+		Image2Path:  img2,
+		Image3Path:  img3,
+		Description: strings.TrimSpace(input.Description),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	if err := s.repo.Create(ctx, dress); err != nil {
+		return nil, fmt.Errorf("failed to create dress: %w", err)
+	}
+
+	detail := dress.ToDetailResponse()
+	return &detail, nil
+}
+
 func (s *DressService) EnsureDefaultDresses(ctx context.Context) error {
 	existing, err := s.repo.List(ctx, "")
 	if err != nil {

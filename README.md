@@ -137,8 +137,8 @@ make test-coverage
 ### Públicos
 - `GET /health` - Estado de salud y uptime del servicio.
 - `POST /api/v1/auth/login` - Inicio de sesión y obtención de JWT Bearer token.
-- `GET /api/v1/colecciones` (o `/api/v1/collections`) - Obtiene el catálogo de colecciones para la web (nombre, ruta de imagen y descripción) desde base de datos.
-- `GET /api/v1/vestidos` (o `/api/v1/dresses`) - Obtiene el catálogo de vestidos (nombre, colección y ruta de imagen). Admite filtro opcional por colección: `?coleccion=...`.
+- `GET /api/v1/colecciones` (o `/api/v1/collections`) - Obtiene el catálogo de colecciones para la web (nombre, ruta de imagen y descripción) desde base de datos, ordenadas de más nuevas a más antiguas.
+- `GET /api/v1/vestidos` (o `/api/v1/dresses`) - Obtiene el catálogo de vestidos (nombre, colección y ruta de imagen) ordenados de más nuevos a más antiguos. Admite filtro opcional por colección: `?coleccion=...`.
 - `GET /api/v1/vestidos/detalle` (o `/api/v1/dresses/detail`) - Obtiene la ficha completa de un vestido (nombre, colección, ruta de imagen 1, ruta de imagen 2 y descripción) a partir de `?nombre=...&coleccion=...`.
 - `POST /api/v1/requests` - Envío de peticiones/formularios generales desde la web pública.
 - `POST /api/v1/citas` (o `/api/v1/appointments`) - Envío de citas solicitadas desde la web (guarda en backoffice y envía email con los datos de la cita).
@@ -146,6 +146,8 @@ make test-coverage
 
 ### Protegidos (requieren cabecera `Authorization: Bearer <TOKEN>`)
 - `GET /api/v1/auth/me` - Datos del usuario autenticado actual.
+- `POST /api/v1/colecciones` (o `/api/v1/collections`) - Añade una nueva colección (`nombre`, `imagen`, `descripcion`).
+- `POST /api/v1/vestidos` (o `/api/v1/dresses`) - Añade un nuevo vestido (`nombre`, `coleccion`, `ruta_imagen`, etc.).
 - `GET /api/v1/requests` - Listado paginado de peticiones (filtros: `?status=&priority=&type=&search=&page=&per_page=`).
 - `GET /api/v1/requests/{id}` - Detalle de una petición.
 - `PATCH /api/v1/requests/{id}/status` - Cambio de estado (`pending`, `in_progress`, `resolved`, `cancelled`) y notas internas.
@@ -161,7 +163,7 @@ make test-coverage
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@mariadiezma.com",
+    "username": "admin",
     "password": "AdminPass123!"
   }'
 ```
@@ -390,6 +392,94 @@ Respuesta (200 OK):
   ]
 }
 ```
+
+### 10. Añadir Nueva Colección (Backoffice - Protegido)
+
+Disponible en `POST /api/v1/colecciones` (o su alias `POST /api/v1/collections`). Requiere cabecera `Authorization: Bearer <TOKEN>`.
+
+#### Campos admitidos en el cuerpo (JSON):
+- `nombre` / `name` (`string`, obligatorio): Nombre de la colección.
+- `imagen` / `image_path` / `ruta_imagen` (`string`, opcional): Ruta o URL de la imagen de portada.
+- `descripcion` / `description` (`string`, opcional): Descripción de la colección.
+
+#### Ejemplo de Petición:
+```bash
+curl -X POST http://localhost:8080/api/v1/colecciones \
+  -H "Authorization: Bearer <TU_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Otoño Silvestre 2026",
+    "imagen": "assets/images/otono-silvestre/portada.jpg",
+    "descripcion": "Diseños inspirados en los colores cálidos y texturas de temporada."
+  }'
+```
+
+Respuesta (`201 Created`):
+```json
+{
+  "success": true,
+  "message": "Colección creada correctamente",
+  "data": {
+    "id": "e98e2197-0130-4e31-8ca6-68153c3e804f",
+    "nombre": "Otoño Silvestre 2026",
+    "imagen": "assets/images/otono-silvestre/portada.jpg",
+    "descripcion": "Diseños inspirados en los colores cálidos y texturas de temporada."
+  }
+}
+```
+
+> *Nota: Al crearse con la fecha y hora actual, la nueva colección aparecerá automáticamente como la primera en `GET /api/v1/colecciones`.*
+
+---
+
+### 11. Añadir Nuevo Vestido (Backoffice - Protegido)
+
+Disponible en `POST /api/v1/vestidos` (o su alias `POST /api/v1/dresses`). Requiere cabecera `Authorization: Bearer <TOKEN>`.
+
+#### Campos admitidos en el cuerpo (JSON):
+- `nombre` / `name` (`string`, obligatorio): Nombre del vestido.
+- `coleccion` / `collection` (`string`, obligatorio): Nombre de la colección asociada.
+- `ruta_imagen` / `image_path` / `imagen` (`string`, opcional): Portada o imagen principal del catálogo.
+- `ruta_imagen_1` / `image1_path` (`string`, opcional): Imagen de detalle 1 (si se omite, toma `ruta_imagen`).
+- `ruta_imagen_2` / `image2_path` (`string`, opcional): Imagen de detalle 2.
+- `ruta_imagen_3` / `image3_path` (`string`, opcional): Imagen de detalle 3.
+- `descripcion` / `description` (`string`, opcional): Descripción detallada del vestido.
+
+#### Ejemplo de Petición:
+```bash
+curl -X POST http://localhost:8080/api/v1/vestidos \
+  -H "Authorization: Bearer <TU_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Vestido Amapola",
+    "coleccion": "Otoño Silvestre 2026",
+    "ruta_imagen": "assets/images/otono-silvestre/MARIA_DIEZMA_101.jpg",
+    "ruta_imagen_1": "assets/images/otono-silvestre/MARIA_DIEZMA_101.jpg",
+    "ruta_imagen_2": "assets/images/otono-silvestre/MARIA_DIEZMA_102.jpg",
+    "ruta_imagen_3": "assets/images/otono-silvestre/MARIA_DIEZMA_103.jpg",
+    "descripcion": "Vestido en crepé de seda con bordados en tonos granate y falda fluida."
+  }'
+```
+
+Respuesta (`201 Created`):
+```json
+{
+  "success": true,
+  "message": "Vestido creado correctamente",
+  "data": {
+    "id": "7ab10f39-da99-4c12-9c3f-c64ff3f39a12",
+    "nombre": "Vestido Amapola",
+    "coleccion": "Otoño Silvestre 2026",
+    "ruta_imagen_1": "assets/images/otono-silvestre/MARIA_DIEZMA_101.jpg",
+    "ruta_imagen_2": "assets/images/otono-silvestre/MARIA_DIEZMA_102.jpg",
+    "ruta_imagen_3": "assets/images/otono-silvestre/MARIA_DIEZMA_103.jpg",
+    "descripcion": "Vestido en crepé de seda con bordados en tonos granate y falda fluida."
+  }
+}
+```
+
+> *Nota: Al crearse con la fecha y hora actual, el nuevo vestido aparecerá automáticamente como el primero del catálogo y de su colección en `GET /api/v1/vestidos`.*
+
 
 
 

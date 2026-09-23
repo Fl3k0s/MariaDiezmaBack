@@ -26,15 +26,15 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Email == "" || input.Password == "" {
-		response.BadRequest(w, "email and password are required", nil)
+	if input.GetIdentifier() == "" || input.Password == "" {
+		response.BadRequest(w, "username and password are required", nil)
 		return
 	}
 
 	authResp, err := h.authService.Login(r.Context(), input)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidCredentials) {
-			response.Unauthorized(w, "invalid email or password")
+			response.Unauthorized(w, "invalid username or password")
 			return
 		}
 		response.InternalServerError(w, "login failed")

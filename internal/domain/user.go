@@ -23,8 +23,16 @@ type User struct {
 }
 
 type LoginInput struct {
-	Email    string `json:"email"`
+	Username string `json:"username"`
+	Email    string `json:"email,omitempty"`
 	Password string `json:"password"`
+}
+
+func (l *LoginInput) GetIdentifier() string {
+	if l.Username != "" {
+		return l.Username
+	}
+	return l.Email
 }
 
 type CreateUserInput struct {

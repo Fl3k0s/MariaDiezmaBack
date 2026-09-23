@@ -6,13 +6,13 @@
 
 -- ==========================================================
 -- 1. USERS (Contraseña para todos: AdminPass123!)
--- Hash bcrypt: $2a$10$jE4fNuXtd2MOAx6PiPPKsuLCCWwEqfJzvGF9MD2ChFBpmlNTdWfr6
+-- Hash bcrypt: $2a$10$wGummVIzRs7nX3v.MNw8vORvVl1..PPI1Zl2VR//qI2xggfGw3mfG
 -- ==========================================================
 INSERT INTO users (id, email, password_hash, name, role, created_at, updated_at)
 VALUES 
-    ('10000000-0000-0000-0000-000000000001', 'admin@mariadiezma.com', '$2a$10$jE4fNuXtd2MOAx6PiPPKsuLCCWwEqfJzvGF9MD2ChFBpmlNTdWfr6', 'Administrador Principal', 'admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('10000000-0000-0000-0000-000000000002', 'manager@mariadiezma.com', '$2a$10$jE4fNuXtd2MOAx6PiPPKsuLCCWwEqfJzvGF9MD2ChFBpmlNTdWfr6', 'Gestor de Taller', 'manager', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('10000000-0000-0000-0000-000000000003', 'operador@mariadiezma.com', '$2a$10$jE4fNuXtd2MOAx6PiPPKsuLCCWwEqfJzvGF9MD2ChFBpmlNTdWfr6', 'Operador de Atención', 'viewer', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ('10000000-0000-0000-0000-000000000001', 'admin@mariadiezma.com', '$2a$10$wGummVIzRs7nX3v.MNw8vORvVl1..PPI1Zl2VR//qI2xggfGw3mfG', 'Administrador Principal', 'admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('10000000-0000-0000-0000-000000000002', 'manager@mariadiezma.com', '$2a$10$wGummVIzRs7nX3v.MNw8vORvVl1..PPI1Zl2VR//qI2xggfGw3mfG', 'Gestor de Taller', 'manager', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('10000000-0000-0000-0000-000000000003', 'operador@mariadiezma.com', '$2a$10$wGummVIzRs7nX3v.MNw8vORvVl1..PPI1Zl2VR//qI2xggfGw3mfG', 'Operador de Atención', 'viewer', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================================
@@ -552,30 +552,6 @@ VALUES
         'assets/images/nayade/MARIA_DIEZMA_050.jpg',
         'assets/images/nayade/MARIA_DIEZMA_051.jpg',
         'Espectacular confección en brocado de fiesta con hilos dorados y textura tornasolada.',
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
-    ),
-    (
-        '30000000-0000-0000-0000-000000000043',
-        'Manantial de Ensueño',
-        'Nayade de Gala',
-        'assets/images/nayade/MARIA_DIEZMA_052.jpg',
-        'assets/images/nayade/MARIA_DIEZMA_052.jpg',
-        'assets/images/nayade/MARIA_DIEZMA_053.jpg',
-        'assets/images/nayade/MARIA_DIEZMA_054.jpg',
-        'Silueta princesa desestructurada con escote corazón y falda etérea de ensueño.',
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
-    ),
-    (
-        '30000000-0000-0000-0000-000000000044',
-        'Lluvia de Estrellas',
-        'Nayade de Gala',
-        'assets/images/nayade/MARIA_DIEZMA_055.jpg',
-        'assets/images/nayade/MARIA_DIEZMA_055.jpg',
-        'assets/images/nayade/MARIA_DIEZMA_056.jpg',
-        'assets/images/nayade/MARIA_DIEZMA_057.jpg',
-        'Pedrería brillante distribuida en degradé de hombros a falda sobre tul de seda.',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     ),

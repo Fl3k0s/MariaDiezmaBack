@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,6 +32,30 @@ func (s *CollectionService) List(ctx context.Context) ([]domain.CollectionRespon
 	}
 
 	return result, nil
+}
+
+func (s *CollectionService) Create(ctx context.Context, input domain.CreateCollectionInput) (*domain.CollectionResponse, error) {
+	name := strings.TrimSpace(input.Name)
+	if name == "" {
+		return nil, fmt.Errorf("%w: el nombre de la colección es obligatorio", domain.ErrInvalidInput)
+	}
+
+	now := time.Now().UTC()
+	col := &domain.Collection{
+		ID:          uuid.NewString(),
+		Name:        name,
+		ImagePath:   strings.TrimSpace(input.ImagePath),
+		Description: strings.TrimSpace(input.Description),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	if err := s.repo.Create(ctx, col); err != nil {
+		return nil, fmt.Errorf("failed to create collection: %w", err)
+	}
+
+	resp := col.ToResponse()
+	return &resp, nil
 }
 
 func (s *CollectionService) EnsureDefaultCollections(ctx context.Context) error {

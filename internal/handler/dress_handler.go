@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -78,3 +79,24 @@ func (h *DressHandler) GetDetail(w http.ResponseWriter, r *http.Request) {
 
 	response.OK(w, "Detalle del vestido obtenido correctamente", detail)
 }
+
+func (h *DressHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var input domain.CreateDressInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.BadRequest(w, "JSON inválido en el cuerpo de la petición", err.Error())
+		return
+	}
+
+	created, err := h.service.Create(r.Context(), input)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvalidInput) {
+			response.BadRequest(w, err.Error(), nil)
+			return
+		}
+		response.InternalServerError(w, "Error al crear el vestido")
+		return
+	}
+
+	response.Created(w, "Vestido creado correctamente", created)
+}
+

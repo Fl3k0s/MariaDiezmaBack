@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -80,3 +81,53 @@ func TestCollectionHandler_List(t *testing.T) {
 		t.Fatalf("expected status 200 on /colecciones, got %d", recES.Code)
 	}
 }
+
+func TestCollectionHandler_Create(t *testing.T) {
+	repo := memory.NewCollectionRepository()
+	colSvc := service.NewCollectionService(repo)
+	colHandler := handler.NewCollectionHandler(colSvc)
+
+	r := chi.NewRouter()
+	r.Post("/api/v1/collections", colHandler.Create)
+	r.Post("/api/v1/colecciones", colHandler.Create)
+
+	// 1. Success case with Spanish keys
+	payload := map[string]string{
+		"nombre":      "Nueva Colección 2027",
+		"imagen":      "assets/images/2027/portada.jpg",
+		"descripcion": "Descripción de prueba para colección nueva.",
+	}
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/collections", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected status 201, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp response.APIResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	if !resp.Success {
+		t.Errorf("expected success true")
+	}
+
+	// 2. Validation error when name is empty
+	badPayload := map[string]string{
+		"nombre": "",
+		"imagen": "assets/images/2027/portada.jpg",
+	}
+	badBody, _ := json.Marshal(badPayload)
+	reqBad := httptest.NewRequest(http.MethodPost, "/api/v1/colecciones", bytes.NewReader(badBody))
+	reqBad.Header.Set("Content-Type", "application/json")
+	recBad := httptest.NewRecorder()
+	r.ServeHTTP(recBad, reqBad)
+
+	if recBad.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400 for missing name, got %d", recBad.Code)
+	}
+}
+

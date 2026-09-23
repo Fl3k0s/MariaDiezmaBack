@@ -29,13 +29,13 @@ func TestAuthService_EnsureAdminAndLogin(t *testing.T) {
 		t.Fatalf("unexpected error on second call to EnsureAdminUser: %v", err)
 	}
 
-	// 3. Login with correct credentials
+	// 3. Login with username (short username "admin")
 	resp, err := authSvc.Login(ctx, domain.LoginInput{
-		Email:    adminEmail,
+		Username: "admin",
 		Password: adminPassword,
 	})
 	if err != nil {
-		t.Fatalf("expected successful login, got: %v", err)
+		t.Fatalf("expected successful login with username, got: %v", err)
 	}
 	if resp.Token == "" {
 		t.Errorf("expected non-empty token")
@@ -63,5 +63,33 @@ func TestAuthService_EnsureAdminAndLogin(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatalf("expected error on wrong password, got nil")
+	}
+
+	// 6. Update password with EnsureAdminUser
+	newPassword := "NewAdminPassword456!"
+	err = authSvc.EnsureAdminUser(ctx, adminEmail, newPassword)
+	if err != nil {
+		t.Fatalf("expected no error updating admin password: %v", err)
+	}
+
+	// Login with old password should fail
+	_, err = authSvc.Login(ctx, domain.LoginInput{
+		Email:    adminEmail,
+		Password: adminPassword,
+	})
+	if err == nil {
+		t.Fatalf("expected error logging in with old password, got nil")
+	}
+
+	// Login with new password should succeed
+	respNew, err := authSvc.Login(ctx, domain.LoginInput{
+		Email:    adminEmail,
+		Password: newPassword,
+	})
+	if err != nil {
+		t.Fatalf("expected login with new password to succeed, got %v", err)
+	}
+	if respNew.Token == "" {
+		t.Errorf("expected non-empty token for new password login")
 	}
 }

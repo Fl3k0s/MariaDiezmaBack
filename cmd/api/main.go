@@ -171,6 +171,14 @@ func main() {
 			// Current user info
 			backoffice.Get("/auth/me", authHandler.Me)
 
+			// Collection Management
+			backoffice.Post("/collections", colHandler.Create)
+			backoffice.Post("/colecciones", colHandler.Create) // Alias en español
+
+			// Dress Management
+			backoffice.Post("/dresses", dressHandler.Create)
+			backoffice.Post("/vestidos", dressHandler.Create) // Alias en español
+
 			// Request Management
 			backoffice.Get("/requests", reqHandler.List)
 			backoffice.Get("/requests/{id}", reqHandler.GetByID)

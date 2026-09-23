@@ -10,7 +10,9 @@ type UserRepository interface {
 	Create(ctx context.Context, user *domain.User) error
 	GetByID(ctx context.Context, id string) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
+	GetByUsernameOrEmail(ctx context.Context, identifier string) (*domain.User, error)
 	List(ctx context.Context) ([]domain.User, error)
+	UpdatePassword(ctx context.Context, id, passwordHash string) error
 }
 
 type RequestRepository interface {

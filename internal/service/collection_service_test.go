@@ -75,3 +75,34 @@ func TestCollectionService_ListAndEnsureDefaults(t *testing.T) {
 		t.Errorf("expected newest collection 'Colección Exclusiva' to be first, got '%s'", listAfterCustom[0].Name)
 	}
 }
+
+func TestCollectionService_Create(t *testing.T) {
+	repo := memory.NewCollectionRepository()
+	svc := service.NewCollectionService(repo)
+	ctx := context.Background()
+
+	// 1. Success
+	resp, err := svc.Create(ctx, domain.CreateCollectionInput{
+		Name:        "Colección Alta Costura",
+		ImagePath:   "assets/images/altacostura/01.jpg",
+		Description: "Descripción elegante.",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error creating collection: %v", err)
+	}
+	if resp.ID == "" {
+		t.Errorf("expected non-empty ID")
+	}
+	if resp.Name != "Colección Alta Costura" {
+		t.Errorf("expected name 'Colección Alta Costura', got '%s'", resp.Name)
+	}
+
+	// 2. Validation error
+	_, err = svc.Create(ctx, domain.CreateCollectionInput{
+		Name: "",
+	})
+	if err == nil {
+		t.Fatalf("expected validation error for empty name, got nil")
+	}
+}
+

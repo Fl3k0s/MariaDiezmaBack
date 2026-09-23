@@ -37,6 +37,14 @@ func setupTestServer(t *testing.T) (*chi.Mux, *service.AuthService, string) {
 		t.Fatalf("failed to login during test setup: %v", err)
 	}
 
+	colRepo := memory.NewCollectionRepository()
+	colSvc := service.NewCollectionService(colRepo)
+	colH := handler.NewCollectionHandler(colSvc)
+
+	dressRepo := memory.NewDressRepository()
+	dressSvc := service.NewDressService(dressRepo)
+	dressH := handler.NewDressHandler(dressSvc)
+
 	r := chi.NewRouter()
 
 	healthH := handler.NewHealthHandler()
@@ -53,6 +61,10 @@ func setupTestServer(t *testing.T) (*chi.Mux, *service.AuthService, string) {
 			backoffice.Use(middleware.Auth(authSvc))
 
 			backoffice.Get("/auth/me", authH.Me)
+			backoffice.Post("/collections", colH.Create)
+			backoffice.Post("/colecciones", colH.Create)
+			backoffice.Post("/dresses", dressH.Create)
+			backoffice.Post("/vestidos", dressH.Create)
 			backoffice.Get("/requests", reqH.List)
 			backoffice.Get("/requests/{id}", reqH.GetByID)
 			backoffice.Patch("/requests/{id}/status", reqH.UpdateStatus)
@@ -145,3 +157,48 @@ func TestAPI_RequestFlow(t *testing.T) {
 		t.Fatalf("expected 200 OK, got %d: %s", patchRec.Code, patchRec.Body.String())
 	}
 }
+
+func TestAPI_BackofficeCollectionsAndDresses(t *testing.T) {
+	r, _, token := setupTestServer(t)
+
+	// 1. Create collection without auth -> 401
+	colPayload := map[string]string{
+		"nombre": "Colección Glamour",
+		"imagen": "assets/images/glamour/portada.jpg",
+	}
+	colBody, _ := json.Marshal(colPayload)
+	reqNoAuth := httptest.NewRequest(http.MethodPost, "/api/v1/collections", bytes.NewReader(colBody))
+	reqNoAuth.Header.Set("Content-Type", "application/json")
+	recNoAuth := httptest.NewRecorder()
+	r.ServeHTTP(recNoAuth, reqNoAuth)
+	if recNoAuth.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 Unauthorized without token, got %d", recNoAuth.Code)
+	}
+
+	// 2. Create collection with auth -> 201
+	reqWithAuth := httptest.NewRequest(http.MethodPost, "/api/v1/collections", bytes.NewReader(colBody))
+	reqWithAuth.Header.Set("Authorization", "Bearer "+token)
+	reqWithAuth.Header.Set("Content-Type", "application/json")
+	recWithAuth := httptest.NewRecorder()
+	r.ServeHTTP(recWithAuth, reqWithAuth)
+	if recWithAuth.Code != http.StatusCreated {
+		t.Fatalf("expected 201 Created for collection, got %d: %s", recWithAuth.Code, recWithAuth.Body.String())
+	}
+
+	// 3. Create dress with auth -> 201
+	dressPayload := map[string]string{
+		"nombre":      "Vestido Diamante",
+		"coleccion":   "Colección Glamour",
+		"ruta_imagen": "assets/images/glamour/diamante_1.jpg",
+	}
+	dressBody, _ := json.Marshal(dressPayload)
+	reqDress := httptest.NewRequest(http.MethodPost, "/api/v1/dresses", bytes.NewReader(dressBody))
+	reqDress.Header.Set("Authorization", "Bearer "+token)
+	reqDress.Header.Set("Content-Type", "application/json")
+	recDress := httptest.NewRecorder()
+	r.ServeHTTP(recDress, reqDress)
+	if recDress.Code != http.StatusCreated {
+		t.Fatalf("expected 201 Created for dress, got %d: %s", recDress.Code, recDress.Body.String())
+	}
+}
+

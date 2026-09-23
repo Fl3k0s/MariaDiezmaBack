@@ -142,3 +142,49 @@ func TestDressService_GetByNameAndCollection(t *testing.T) {
 	}
 }
 
+func TestDressService_Create(t *testing.T) {
+	repo := memory.NewDressRepository()
+	svc := service.NewDressService(repo)
+	ctx := context.Background()
+
+	// 1. Success
+	resp, err := svc.Create(ctx, domain.CreateDressInput{
+		Name:        "Vestido Violeta",
+		Collection:  "Esencia Floral",
+		ImagePath:   "assets/images/esencia-floral/MARIA_DIEZMA_110.jpg",
+		Description: "Vestido violeta artesanal.",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error creating dress: %v", err)
+	}
+	if resp.ID == "" {
+		t.Errorf("expected non-empty ID")
+	}
+	if resp.Name != "Vestido Violeta" {
+		t.Errorf("expected name 'Vestido Violeta', got '%s'", resp.Name)
+	}
+	if resp.Collection != "Esencia Floral" {
+		t.Errorf("expected collection 'Esencia Floral', got '%s'", resp.Collection)
+	}
+	if resp.Image1Path != "assets/images/esencia-floral/MARIA_DIEZMA_110.jpg" {
+		t.Errorf("expected image1 path fallback to ImagePath, got '%s'", resp.Image1Path)
+	}
+
+	// 2. Validation error - missing collection
+	_, err = svc.Create(ctx, domain.CreateDressInput{
+		Name: "Vestido Sin Colección",
+	})
+	if err == nil {
+		t.Fatalf("expected validation error for missing collection, got nil")
+	}
+
+	// 3. Validation error - missing name
+	_, err = svc.Create(ctx, domain.CreateDressInput{
+		Collection: "Esencia Floral",
+	})
+	if err == nil {
+		t.Fatalf("expected validation error for missing name, got nil")
+	}
+}
+
+

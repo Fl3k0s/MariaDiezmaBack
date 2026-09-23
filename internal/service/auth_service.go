@@ -36,9 +36,18 @@ func NewAuthService(userRepo repository.UserRepository, jwtSecret string, expHou
 }
 
 func (s *AuthService) EnsureAdminUser(ctx context.Context, email, password string) error {
-	_, err := s.userRepo.GetByEmail(ctx, email)
+	existing, err := s.userRepo.GetByEmail(ctx, email)
 	if err == nil {
-		// Admin already exists
+		// Admin already exists. Verify if the stored hash matches the configured password.
+		if err := bcrypt.CompareHashAndPassword([]byte(existing.PasswordHash), []byte(password)); err != nil {
+			newHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			if err != nil {
+				return fmt.Errorf("failed to hash password for admin update: %w", err)
+			}
+			if err := s.userRepo.UpdatePassword(ctx, existing.ID, string(newHash)); err != nil {
+				return fmt.Errorf("failed to update admin password: %w", err)
+			}
+		}
 		return nil
 	}
 	if !errors.Is(err, domain.ErrNotFound) {
@@ -65,7 +74,8 @@ func (s *AuthService) EnsureAdminUser(ctx context.Context, email, password strin
 }
 
 func (s *AuthService) Login(ctx context.Context, input domain.LoginInput) (*domain.AuthResponse, error) {
-	user, err := s.userRepo.GetByEmail(ctx, input.Email)
+	identifier := input.GetIdentifier()
+	user, err := s.userRepo.GetByUsernameOrEmail(ctx, identifier)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return nil, domain.ErrInvalidCredentials

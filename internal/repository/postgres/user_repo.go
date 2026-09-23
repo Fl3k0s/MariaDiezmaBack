@@ -94,6 +94,32 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, 
 	return &user, nil
 }
 
+func (r *UserRepo) GetByUsernameOrEmail(ctx context.Context, identifier string) (*domain.User, error) {
+	query := `
+		SELECT id, email, password_hash, name, role, created_at, updated_at
+		FROM users
+		WHERE LOWER(email) = LOWER($1) OR LOWER(split_part(email, '@', 1)) = LOWER($1)
+		LIMIT 1
+	`
+	var user domain.User
+	err := r.pool.QueryRow(ctx, query, identifier).Scan(
+		&user.ID,
+		&user.Email,
+		&user.PasswordHash,
+		&user.Name,
+		&user.Role,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to get user by username or email: %w", err)
+	}
+	return &user, nil
+}
+
 func (r *UserRepo) List(ctx context.Context) ([]domain.User, error) {
 	query := `
 		SELECT id, email, password_hash, name, role, created_at, updated_at
@@ -123,4 +149,20 @@ func (r *UserRepo) List(ctx context.Context) ([]domain.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (r *UserRepo) UpdatePassword(ctx context.Context, id, passwordHash string) error {
+	query := `
+		UPDATE users
+		SET password_hash = $1, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $2
+	`
+	tag, err := r.pool.Exec(ctx, query, passwordHash, id)
+	if err != nil {
+		return fmt.Errorf("failed to update user password: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
 }

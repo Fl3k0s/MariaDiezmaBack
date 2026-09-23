@@ -59,6 +59,25 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, 
 	return nil, domain.ErrNotFound
 }
 
+func (r *UserRepo) GetByUsernameOrEmail(ctx context.Context, identifier string) (*domain.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	clean := strings.ToLower(strings.TrimSpace(identifier))
+	for _, u := range r.users {
+		userEmail := strings.ToLower(strings.TrimSpace(u.Email))
+		usernamePart := userEmail
+		if idx := strings.Index(userEmail, "@"); idx != -1 {
+			usernamePart = userEmail[:idx]
+		}
+		if userEmail == clean || usernamePart == clean {
+			userCopy := *u
+			return &userCopy, nil
+		}
+	}
+	return nil, domain.ErrNotFound
+}
+
 func (r *UserRepo) List(ctx context.Context) ([]domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -68,4 +87,16 @@ func (r *UserRepo) List(ctx context.Context) ([]domain.User, error) {
 		list = append(list, *u)
 	}
 	return list, nil
+}
+
+func (r *UserRepo) UpdatePassword(ctx context.Context, id, passwordHash string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, exists := r.users[id]
+	if !exists {
+		return domain.ErrNotFound
+	}
+	user.PasswordHash = passwordHash
+	return nil
 }
