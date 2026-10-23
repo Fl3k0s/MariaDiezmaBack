@@ -45,6 +45,8 @@ seed:
 seed-docker:
 	@echo "Injecting seed data into PostgreSQL container..."
 	docker exec -i mariadiezma_db psql -U postgres -d mariadiezma < migrations/000002_seed_data.sql
+	docker exec -i mariadiezma_db psql -U postgres -d mariadiezma < migrations/000003_add_secretos_collection.sql
+	docker exec -i mariadiezma_db psql -U postgres -d mariadiezma < migrations/000004_create_holidays_table.sql
 
 test-smtp:
 	@echo "Testing SMTP email dispatch..."

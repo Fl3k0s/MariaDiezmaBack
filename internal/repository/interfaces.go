@@ -42,4 +42,16 @@ type PressArticleRepository interface {
 	Create(ctx context.Context, article *domain.PressArticle) error
 }
 
+type HolidayRepository interface {
+	List(ctx context.Context, year int) ([]domain.Holiday, error)
+	GetByID(ctx context.Context, id string) (*domain.Holiday, error)
+	GetByDate(ctx context.Context, date string) (*domain.Holiday, error)
+	Create(ctx context.Context, holiday *domain.Holiday) error
+	CreateBatch(ctx context.Context, holidays []domain.Holiday) error
+	Update(ctx context.Context, holiday *domain.Holiday) error
+	Delete(ctx context.Context, id string) error
+	DeleteByYear(ctx context.Context, year int) (int64, error)
+}
+
+
 

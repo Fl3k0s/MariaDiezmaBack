@@ -14,6 +14,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations/000001_init_schema.up.sql:/docker-entrypoint-initdb.d/000001_init_schema.sql
       - ./migrations/000002_seed_data.sql:/docker-entrypoint-initdb.d/000002_seed_data.sql
+      - ./migrations/000003_add_secretos_collection.sql:/docker-entrypoint-initdb.d/000003_add_secretos_collection.sql
+      - ./migrations/000004_create_holidays_table.sql:/docker-entrypoint-initdb.d/000004_create_holidays_table.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d mariadiezma"]
       interval: 5s

@@ -45,11 +45,12 @@ func main() {
 
 	// Initialize repositories based on configured driver
 	var (
-		userRepo  repository.UserRepository
-		reqRepo   repository.RequestRepository
-		colRepo   repository.CollectionRepository
-		dressRepo repository.DressRepository
-		pressRepo repository.PressArticleRepository
+		userRepo    repository.UserRepository
+		reqRepo     repository.RequestRepository
+		colRepo     repository.CollectionRepository
+		dressRepo   repository.DressRepository
+		pressRepo   repository.PressArticleRepository
+		holidayRepo repository.HolidayRepository
 	)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -69,6 +70,7 @@ func main() {
 		colRepo = postgres.NewCollectionRepository(pool)
 		dressRepo = postgres.NewDressRepository(pool)
 		pressRepo = postgres.NewPressArticleRepository(pool)
+		holidayRepo = postgres.NewHolidayRepository(pool)
 	} else {
 		logger.Info("Running with in-memory repository (ideal for testing and rapid local dev)")
 		userRepo = memory.NewUserRepository()
@@ -76,6 +78,7 @@ func main() {
 		colRepo = memory.NewCollectionRepository()
 		dressRepo = memory.NewDressRepository()
 		pressRepo = memory.NewPressArticleRepository()
+		holidayRepo = memory.NewHolidayRepository()
 	}
 
 	// Initialize services
@@ -86,6 +89,7 @@ func main() {
 	colService := service.NewCollectionService(colRepo)
 	dressService := service.NewDressService(dressRepo)
 	pressService := service.NewPressArticleService(pressRepo)
+	holidayService := service.NewHolidayService(holidayRepo)
 
 	// Ensure default administrator account exists
 	if err := authService.EnsureAdminUser(ctx, cfg.AdminEmail, cfg.AdminPassword); err != nil {
@@ -115,6 +119,13 @@ func main() {
 		logger.Info("Press articles initialized")
 	}
 
+	// Seed default Madrid holidays if empty
+	if err := holidayService.EnsureDefaultHolidays(ctx); err != nil {
+		logger.Error("Failed to seed default Madrid holidays", slog.Any("error", err))
+	} else {
+		logger.Info("Madrid holidays initialized")
+	}
+
 	// Handlers
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService)
@@ -123,6 +134,7 @@ func main() {
 	colHandler := handler.NewCollectionHandler(colService)
 	dressHandler := handler.NewDressHandler(dressService)
 	pressHandler := handler.NewPressHandler(pressService)
+	holidayHandler := handler.NewHolidayHandler(holidayService)
 
 	// Router setup
 	r := chi.NewRouter()
@@ -164,6 +176,14 @@ func main() {
 		api.Get("/prensa", pressHandler.List) // Alias en español
 		api.Get("/articulos-prensa", pressHandler.List) // Alias en español
 
+		// Public holidays for frontend web calendar & availability
+		api.Get("/holidays", holidayHandler.List)
+		api.Get("/festivos", holidayHandler.List) // Alias en español
+		api.Get("/holidays/{year}", holidayHandler.GetByYear)
+		api.Get("/festivos/{year}", holidayHandler.GetByYear) // Alias en español
+		api.Get("/holidays/id/{id}", holidayHandler.GetByID)
+		api.Get("/festivos/id/{id}", holidayHandler.GetByID) // Alias en español
+
 		// Protected Backoffice Routes
 		api.Group(func(backoffice chi.Router) {
 			backoffice.Use(middleware.Auth(authService))
@@ -178,6 +198,16 @@ func main() {
 			// Dress Management
 			backoffice.Post("/dresses", dressHandler.Create)
 			backoffice.Post("/vestidos", dressHandler.Create) // Alias en español
+
+			// Holiday Management (Madrid holidays defined year by year, deletable at any time)
+			backoffice.Post("/holidays", holidayHandler.Create)
+			backoffice.Post("/festivos", holidayHandler.Create) // Alias en español
+			backoffice.Put("/holidays/{id}", holidayHandler.Update)
+			backoffice.Put("/festivos/{id}", holidayHandler.Update) // Alias en español
+			backoffice.Delete("/holidays/{id}", holidayHandler.Delete)
+			backoffice.Delete("/festivos/{id}", holidayHandler.Delete) // Alias en español
+			backoffice.Delete("/holidays/year/{year}", holidayHandler.DeleteByYear)
+			backoffice.Delete("/festivos/year/{year}", holidayHandler.DeleteByYear) // Alias en español
 
 			// Request Management
 			backoffice.Get("/requests", reqHandler.List)

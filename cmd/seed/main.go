@@ -55,5 +55,25 @@ func main() {
 		log.Fatalf("Error inyectando datos de prueba: %v", err)
 	}
 
+	// 3. Apply Secretos Collection Migration
+	secretosPath := "migrations/000003_add_secretos_collection.sql"
+	if secretosSQL, err := os.ReadFile(secretosPath); err == nil {
+		fmt.Println("Aplicando migración colección Secretos (000003_add_secretos_collection.sql)...")
+		if _, err := conn.Exec(ctx, string(secretosSQL)); err != nil {
+			log.Fatalf("Error ejecutando migración de Secretos: %v", err)
+		}
+		fmt.Println("✓ Colección Secretos inyectada correctamente.")
+	}
+
+	// 4. Apply Holidays Table and Initial Madrid Holidays Migration
+	holidaysPath := "migrations/000004_create_holidays_table.sql"
+	if holidaysSQL, err := os.ReadFile(holidaysPath); err == nil {
+		fmt.Println("Aplicando migración festivos de Madrid (000004_create_holidays_table.sql)...")
+		if _, err := conn.Exec(ctx, string(holidaysSQL)); err != nil {
+			log.Fatalf("Error ejecutando migración de festivos: %v", err)
+		}
+		fmt.Println("✓ Festivos de Madrid verificados/inyectados correctamente.")
+	}
+
 	fmt.Println("✓ ¡Datos de prueba inyectados con éxito en PostgreSQL!")
 }

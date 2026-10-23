@@ -143,11 +143,17 @@ make test-coverage
 - `POST /api/v1/requests` - Envío de peticiones/formularios generales desde la web pública.
 - `POST /api/v1/citas` (o `/api/v1/appointments`) - Envío de citas solicitadas desde la web (guarda en backoffice y envía email con los datos de la cita).
 - `GET /api/v1/prensa` (o `/api/v1/press`, `/api/v1/articulos-prensa`) - Obtiene el listado de artículos de prensa (nombre de la revista, fecha de publicación, titular, pequeña descripción y enlace del artículo).
+- `GET /api/v1/festivos` (o `/api/v1/holidays`) - Obtiene los festivos de Madrid. Admite filtro opcional por año `?year=2026` (o `?anio=2026`). Si no hay festivos para el año indicado, devuelve `200 OK` con `data: []` para que la web pinte los días de forma normal.
+- `GET /api/v1/festivos/{year}` (o `/api/v1/holidays/{year}`) - Obtiene los festivos de Madrid de un año específico por ruta directa.
 
 ### Protegidos (requieren cabecera `Authorization: Bearer <TOKEN>`)
 - `GET /api/v1/auth/me` - Datos del usuario autenticado actual.
 - `POST /api/v1/colecciones` (o `/api/v1/collections`) - Añade una nueva colección (`nombre`, `imagen`, `descripcion`).
 - `POST /api/v1/vestidos` (o `/api/v1/dresses`) - Añade un nuevo vestido (`nombre`, `coleccion`, `ruta_imagen`, etc.).
+- `POST /api/v1/festivos` (o `/api/v1/holidays`) - Añade festivo(s) de Madrid año a año (soporta festivo individual o array batch).
+- `PUT /api/v1/festivos/{id}` (o `/api/v1/holidays/{id}`) - Modifica un festivo existente.
+- `DELETE /api/v1/festivos/{id}` (o `/api/v1/holidays/{id}`) - Elimina un festivo por su ID en cualquier momento.
+- `DELETE /api/v1/festivos/year/{year}` (o `/api/v1/holidays/year/{year}`) - Elimina todos los festivos de un año en cualquier momento.
 - `GET /api/v1/requests` - Listado paginado de peticiones (filtros: `?status=&priority=&type=&search=&page=&per_page=`).
 - `GET /api/v1/requests/{id}` - Detalle de una petición.
 - `PATCH /api/v1/requests/{id}/status` - Cambio de estado (`pending`, `in_progress`, `resolved`, `cancelled`) y notas internas.
@@ -479,6 +485,131 @@ Respuesta (`201 Created`):
 ```
 
 > *Nota: Al crearse con la fecha y hora actual, el nuevo vestido aparecerá automáticamente como el primero del catálogo y de su colección en `GET /api/v1/vestidos`.*
+
+---
+
+### 12. Consulta de Festivos de Madrid para la Web Frontend (Público)
+
+Permite al frontend obtener los días festivos de Madrid para bloquearlos o resaltarlos en el calendario de reserva de citas.
+
+- Si se consulta un año que tiene festivos definidos, devuelve el listado ordenado cronológicamente.
+- **Si no hay resultados** (porque el año no está definido o porque los festivos han sido eliminados), **la API responde con código `200 OK` y un array vacío `[]`**. Esto garantiza que el frontend pinte los días normales sin errores.
+
+#### Parámetros Query admitidos:
+- `year` (o `anio` / `ano`): Año a consultar (ejemplo: `2026`). Si se omite, devuelve todos los festivos registrados.
+- O mediante ruta directa: `GET /api/v1/festivos/{year}` (ejemplo: `/api/v1/festivos/2026`).
+
+#### Ejemplo de Petición (con resultados):
+```bash
+curl -X GET "http://localhost:8080/api/v1/festivos?year=2026"
+```
+
+Respuesta (`200 OK`):
+```json
+{
+  "success": true,
+  "message": "Festivos obtenidos correctamente",
+  "data": [
+    {
+      "id": "50000000-0000-0000-2026-000000000001",
+      "date": "2026-01-01",
+      "fecha": "2026-01-01",
+      "year": 2026,
+      "anio": 2026,
+      "name": "Año Nuevo",
+      "nombre": "Año Nuevo",
+      "description": "Festivo nacional",
+      "descripcion": "Festivo nacional",
+      "scope": "nacional",
+      "ambito": "nacional"
+    },
+    {
+      "id": "50000000-0000-0000-2026-000000000007",
+      "date": "2026-05-15",
+      "fecha": "2026-05-15",
+      "year": 2026,
+      "anio": 2026,
+      "name": "San Isidro Labrador",
+      "nombre": "San Isidro Labrador",
+      "description": "Patrón de Madrid capital",
+      "descripcion": "Patrón de Madrid capital",
+      "scope": "local",
+      "ambito": "local"
+    }
+  ]
+}
+```
+
+#### Ejemplo de Petición (cuando no hay resultados / festivos eliminados):
+```bash
+curl -X GET "http://localhost:8080/api/v1/festivos?year=2035"
+```
+
+Respuesta (`200 OK`):
+```json
+{
+  "success": true,
+  "message": "Festivos obtenidos correctamente",
+  "data": []
+}
+```
+
+---
+
+### 13. Gestión y Eliminación de Festivos (Backoffice - Protegido)
+
+Permite definir festivos año a año (individualmente o por lote) y **eliminarlos en cualquier momento**.
+
+#### A. Añadir un festivo individual:
+```bash
+curl -X POST http://localhost:8080/api/v1/festivos \
+  -H "Authorization: Bearer <TU_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fecha": "2027-05-15",
+    "nombre": "San Isidro",
+    "descripcion": "Patrón de Madrid",
+    "ambito": "local"
+  }'
+```
+
+#### B. Añadir lote de festivos para un año (Batch):
+```bash
+curl -X POST http://localhost:8080/api/v1/festivos \
+  -H "Authorization: Bearer <TU_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '[
+    { "fecha": "2027-01-01", "nombre": "Año Nuevo", "ambito": "nacional" },
+    { "fecha": "2027-01-06", "nombre": "Epifanía del Señor", "ambito": "nacional" },
+    { "fecha": "2027-05-15", "nombre": "San Isidro", "ambito": "local" }
+  ]'
+```
+
+#### C. Eliminar un festivo concreto por ID:
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/festivos/50000000-0000-0000-2026-000000000001" \
+  -H "Authorization: Bearer <TU_TOKEN>"
+```
+
+#### D. Eliminar todos los festivos de un año completo:
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/festivos/year/2026" \
+  -H "Authorization: Bearer <TU_TOKEN>"
+```
+
+Respuesta (`200 OK`):
+```json
+{
+  "success": true,
+  "message": "Se han eliminado 14 festivo(s) del año 2026",
+  "data": {
+    "deleted_count": 14,
+    "year": 2026
+  }
+}
+```
+*(Tras esta eliminación, la web al consultar `GET /api/v1/festivos?year=2026` recibirá `data: []` y pintará todos los días normales sin festivos ni bloqueos).*
+
 
 
 
